@@ -7,6 +7,8 @@
 #
 OBJDIR := obj
 
+QEMU = qemu-system-i386
+
 -include conf/lab.mk
 
 -include conf/env.mk
