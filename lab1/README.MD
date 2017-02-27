@@ -2,21 +2,11 @@
 
 after a jmp or ljmp
 
-* What is the last instruction of the boot loader executed, and what is the first instruction of the kernel it just loaded?
+* What is the *last* instruction of the boot loader executed, and what is the first instruction of the kernel it just loaded?
 
 
 
-* Where is the first instruction of the kernel?
-
-
-
-
-
-
-
-
-
-
+* *Where* is the first instruction of the kernel?
 
 
 
