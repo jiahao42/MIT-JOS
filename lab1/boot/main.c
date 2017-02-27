@@ -69,17 +69,17 @@ bad:
 // Read 'count' bytes at 'offset' from kernel into physical address 'pa'.
 // Might copy more than asked
 void
-readseg(uint32_t pa, uint32_t count, uint32_t offset)
+readseg(uint32_t pa, uint32_t count, uint32_t offset)//pa = 0x10000 count = 0x1000 offset = 0
 {
 	uint32_t end_pa;
 
-	end_pa = pa + count;
+	end_pa = pa + count;//0x110000
 	
 	// round down to sector boundary
-	pa &= ~(SECTSIZE - 1);
+	pa &= ~(SECTSIZE - 1);//0x10000
 
 	// translate from bytes to sectors, and kernel starts at sector 1
-	offset = (offset / SECTSIZE) + 1;
+	offset = (offset / SECTSIZE) + 1;//1
 
 	// If this is too slow, we could read lots of sectors at a time.
 	// We'd write more to memory than asked, but it doesn't matter --
