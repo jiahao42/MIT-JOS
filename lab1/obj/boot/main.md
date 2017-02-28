@@ -69,11 +69,11 @@ Disassembly of section .text:
   7b:	46                   	inc    %esi ; esi = 0x1
   7c:	81 e3 00 fe ff ff    	and    $0xfffffe00,%ebx ; ebx = 0x10000
   82:	39 fb                	cmp    %edi,%ebx ; 0x11000 > 0x10000
-  84:	73 12                	jae    98 <readseg+0x31> 
+  84:	73 12                	jae    98 <readseg+0x31> ; jump to end 
   86:	56                   	push   %esi ; offset = 1
-  87:	46                   	inc    %esi
+  87:	46                   	inc    %esi ; offset++
   88:	53                   	push   %ebx ; pa = 0x10000
-  89:	81 c3 00 02 00 00    	add    $0x200,%ebx ; why?
+  89:	81 c3 00 02 00 00    	add    $0x200,%ebx ; add a sector size, because this first sector has already been read by BIOS
   8f:	e8 fc ff ff ff       	call   90 <readseg+0x29> ; call readsect
   94:	58                   	pop    %eax
   95:	5a                   	pop    %edx
