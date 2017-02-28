@@ -226,20 +226,20 @@ insl(int port, void *addr, int cnt)
 // Read 'count' bytes at 'offset' from kernel into physical address 'pa'.
 // Might copy more than asked
 void
-readseg(uint32_t pa, uint32_t count, uint32_t offset)
+readseg(uint32_t pa, uint32_t count, uint32_t offset)//pa = 0x10000 count = 0x1000 offset = 0
 {
     7cd1:	55                   	push   %ebp
     7cd2:	89 e5                	mov    %esp,%ebp
     7cd4:	57                   	push   %edi
 	uint32_t end_pa;
 
-	end_pa = pa + count;
+	end_pa = pa + count;//0x110000
     7cd5:	8b 7d 0c             	mov    0xc(%ebp),%edi
 
 // Read 'count' bytes at 'offset' from kernel into physical address 'pa'.
 // Might copy more than asked
 void
-readseg(uint32_t pa, uint32_t count, uint32_t offset)
+readseg(uint32_t pa, uint32_t count, uint32_t offset)//pa = 0x10000 count = 0x1000 offset = 0
 {
     7cd8:	56                   	push   %esi
     7cd9:	8b 75 10             	mov    0x10(%ebp),%esi
@@ -247,33 +247,33 @@ readseg(uint32_t pa, uint32_t count, uint32_t offset)
     7cdd:	8b 5d 08             	mov    0x8(%ebp),%ebx
 	
 	// round down to sector boundary
-	pa &= ~(SECTSIZE - 1);
+	pa &= ~(SECTSIZE - 1);//0x10000
 
 	// translate from bytes to sectors, and kernel starts at sector 1
-	offset = (offset / SECTSIZE) + 1;
+	offset = (offset / SECTSIZE) + 1;//1
     7ce0:	c1 ee 09             	shr    $0x9,%esi
 void
-readseg(uint32_t pa, uint32_t count, uint32_t offset)
+readseg(uint32_t pa, uint32_t count, uint32_t offset)//pa = 0x10000 count = 0x1000 offset = 0
 {
 	uint32_t end_pa;
 
-	end_pa = pa + count;
+	end_pa = pa + count;//0x110000
     7ce3:	01 df                	add    %ebx,%edi
 	
 	// round down to sector boundary
-	pa &= ~(SECTSIZE - 1);
+	pa &= ~(SECTSIZE - 1);//0x10000
 
 	// translate from bytes to sectors, and kernel starts at sector 1
-	offset = (offset / SECTSIZE) + 1;
+	offset = (offset / SECTSIZE) + 1;//1
     7ce5:	46                   	inc    %esi
 	uint32_t end_pa;
 
-	end_pa = pa + count;
+	end_pa = pa + count;//0x110000
 	
 	// round down to sector boundary
-	pa &= ~(SECTSIZE - 1);
+	pa &= ~(SECTSIZE - 1);//0x10000
     7ce6:	81 e3 00 fe ff ff    	and    $0xfffffe00,%ebx
-	offset = (offset / SECTSIZE) + 1;
+	offset = (offset / SECTSIZE) + 1;//1
 
 	// If this is too slow, we could read lots of sectors at a time.
 	// We'd write more to memory than asked, but it doesn't matter --
