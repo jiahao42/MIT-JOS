@@ -120,6 +120,6 @@ readsect(void *dst, uint32_t offset)
 	waitdisk();
 
 	// read a sector
-	insl(0x1F0, dst, SECTSIZE/4);
+	insl(0x1F0, dst, SECTSIZE/4);//read 4 bytes a time, need 128 times
 }
 

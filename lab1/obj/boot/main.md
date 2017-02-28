@@ -5,7 +5,7 @@ main.o:     file format elf32-i386
 Disassembly of section .text:
 
 00000000 <waitdisk>:
-   0:	55                   	push   %ebp
+   0:	55                   	push   %ebp ; don't need to start new frame
    1:	ba f7 01 00 00       	mov    $0x1f7,%edx
    6:	89 e5                	mov    %esp,%ebp
    8:	ec                   	in     (%dx),%al
@@ -17,12 +17,12 @@ Disassembly of section .text:
 
 00000012 <readsect>:
   12:	55                   	push   %ebp
-  13:	89 e5                	mov    %esp,%ebp
-  15:	57                   	push   %edi
-  16:	53                   	push   %ebx
-  17:	8b 5d 0c             	mov    0xc(%ebp),%ebx
-  1a:	e8 fc ff ff ff       	call   1b <readsect+0x9>
-  1f:	ba f2 01 00 00       	mov    $0x1f2,%edx
+  13:	89 e5                	mov    %esp,%ebp ; start a new stack frame
+  15:	57                   	push   %edi 
+  16:	53                   	push   %ebx ; save the value
+  17:	8b 5d 0c             	mov    0xc(%ebp),%ebx ; ebx = 1
+  1a:	e8 fc ff ff ff       	call   1b <readsect+0x9> ; call waitdisk
+  1f:	ba f2 01 00 00       	mov    $0x1f2,%edx ;; start to manipulate devices
   24:	b0 01                	mov    $0x1,%al
   26:	ee                   	out    %al,(%dx)
   27:	0f b6 c3             	movzbl %bl,%eax
@@ -43,13 +43,13 @@ Disassembly of section .text:
   48:	ee                   	out    %al,(%dx)
   49:	b0 20                	mov    $0x20,%al
   4b:	b2 f7                	mov    $0xf7,%dl
-  4d:	ee                   	out    %al,(%dx)
-  4e:	e8 fc ff ff ff       	call   4f <readsect+0x3d>
-  53:	8b 7d 08             	mov    0x8(%ebp),%edi
-  56:	b9 80 00 00 00       	mov    $0x80,%ecx
-  5b:	ba f0 01 00 00       	mov    $0x1f0,%edx
-  60:	fc                   	cld    
-  61:	f2 6d                	repnz insl (%dx),%es:(%edi)
+  4d:	ee                   	out    %al,(%dx) ;; end of manipulating devices
+  4e:	e8 fc ff ff ff       	call   4f <readsect+0x3d> ; call waitdisk
+  53:	8b 7d 08             	mov    0x8(%ebp),%edi ; edi = 0x11000
+  56:	b9 80 00 00 00       	mov    $0x80,%ecx ; ecx = 0x80
+  5b:	ba f0 01 00 00       	mov    $0x1f0,%edx ; edx = 0x1f0
+  60:	fc                   	cld    ; df = 0
+  61:	f2 6d                	repnz insl (%dx),%es:(%edi) ; edi=0x10000 at first
   63:	5b                   	pop    %ebx
   64:	5f                   	pop    %edi
   65:	5d                   	pop    %ebp
@@ -68,13 +68,13 @@ Disassembly of section .text:
   79:	01 df                	add    %ebx,%edi ; edi = 0x11000
   7b:	46                   	inc    %esi ; esi = 0x1
   7c:	81 e3 00 fe ff ff    	and    $0xfffffe00,%ebx ; ebx = 0x10000
-  82:	39 fb                	cmp    %edi,%ebx ; 0x11000 vs 0x10000
-  84:	73 12                	jae    98 <readseg+0x31> ; call readsect
-  86:	56                   	push   %esi
+  82:	39 fb                	cmp    %edi,%ebx ; 0x11000 > 0x10000
+  84:	73 12                	jae    98 <readseg+0x31> 
+  86:	56                   	push   %esi ; offset = 1
   87:	46                   	inc    %esi
-  88:	53                   	push   %ebx
-  89:	81 c3 00 02 00 00    	add    $0x200,%ebx
-  8f:	e8 fc ff ff ff       	call   90 <readseg+0x29>
+  88:	53                   	push   %ebx ; pa = 0x10000
+  89:	81 c3 00 02 00 00    	add    $0x200,%ebx ; why?
+  8f:	e8 fc ff ff ff       	call   90 <readseg+0x29> ; call readsect
   94:	58                   	pop    %eax
   95:	5a                   	pop    %edx
   96:	eb ea                	jmp    82 <readseg+0x1b>

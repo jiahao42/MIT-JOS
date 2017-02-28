@@ -9,10 +9,11 @@
 * At what point does the processor start executing 32-bit code? What exactly causes the switch from 16- to 32-bit mode?
 
     * after a jmp or ljmp
-    * jmp )x8:0xfd157
+    * jmp 0x8:0xfd157
 
 * What is the *last* instruction of the boot loader executed, and what is the first instruction of the kernel it just loaded?
-
+    * The repnz instruction read 4 bytes at a time from port 0x1f0, the first 4 bytes it reads are the magic number of ELF header, which is ```0x7f 0x45 0x4c 0x46```, and ```0x45 0x4c 0x46``` means *ELF*
+    * Actually, you can read the kernel like this: ```cat kernel.img | xxd | head 10```, then you can see the first 16*10 bytes of the kernel
 
 
 * *Where* is the first instruction of the kernel?
