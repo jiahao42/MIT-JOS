@@ -1,4 +1,4 @@
-
+```
 main.o:     file format elf32-i386
 
 
@@ -57,19 +57,19 @@ Disassembly of section .text:
 
 00000067 <readseg>:
   67:	55                   	push   %ebp
-  68:	89 e5                	mov    %esp,%ebp
-  6a:	57                   	push   %edi
-  6b:	8b 7d 0c             	mov    0xc(%ebp),%edi
-  6e:	56                   	push   %esi
-  6f:	8b 75 10             	mov    0x10(%ebp),%esi
-  72:	53                   	push   %ebx
-  73:	8b 5d 08             	mov    0x8(%ebp),%ebx
-  76:	c1 ee 09             	shr    $0x9,%esi
-  79:	01 df                	add    %ebx,%edi
-  7b:	46                   	inc    %esi
-  7c:	81 e3 00 fe ff ff    	and    $0xfffffe00,%ebx
-  82:	39 fb                	cmp    %edi,%ebx
-  84:	73 12                	jae    98 <readseg+0x31>
+  68:	89 e5                	mov    %esp,%ebp ; start new stack frame
+  6a:	57                   	push   %edi ; save the value
+  6b:	8b 7d 0c             	mov    0xc(%ebp),%edi ; edi = 0x1000
+  6e:	56                   	push   %esi ; esi = 0
+  6f:	8b 75 10             	mov    0x10(%ebp),%esi ; esi = 0
+  72:	53                   	push   %ebx ; ebx = 0
+  73:	8b 5d 08             	mov    0x8(%ebp),%ebx ; ebx = 0x10000
+  76:	c1 ee 09             	shr    $0x9,%esi ; esi = 0x200 = 512
+  79:	01 df                	add    %ebx,%edi ; edi = 0x11000
+  7b:	46                   	inc    %esi ; esi = 0x1
+  7c:	81 e3 00 fe ff ff    	and    $0xfffffe00,%ebx ; ebx = 0x10000
+  82:	39 fb                	cmp    %edi,%ebx ; 0x11000 vs 0x10000
+  84:	73 12                	jae    98 <readseg+0x31> ; call readsect
   86:	56                   	push   %esi
   87:	46                   	inc    %esi
   88:	53                   	push   %ebx
@@ -86,15 +86,15 @@ Disassembly of section .text:
   9f:	c3                   	ret    
 
 000000a0 <bootmain>:
-  a0:	55                   	push   %ebp
-  a1:	89 e5                	mov    %esp,%ebp
+  a0:	55                   	push   %ebp 
+  a1:	89 e5                	mov    %esp,%ebp ;start new stack frame
   a3:	56                   	push   %esi
-  a4:	53                   	push   %ebx
+  a4:	53                   	push   %ebx ; save the value
   a5:	6a 00                	push   $0x0
   a7:	68 00 10 00 00       	push   $0x1000
-  ac:	68 00 00 01 00       	push   $0x10000
-  b1:	e8 fc ff ff ff       	call   b2 <bootmain+0x12>
-  b6:	83 c4 0c             	add    $0xc,%esp
+  ac:	68 00 00 01 00       	push   $0x10000 ; push 3 parameters
+  b1:	e8 fc ff ff ff       	call   b2 <bootmain+0x12> ; jmp to readseg
+  b6:	83 c4 0c             	add    $0xc,%esp ; fix stack
   b9:	81 3d 00 00 01 00 7f 	cmpl   $0x464c457f,0x10000
   c0:	45 4c 46 
   c3:	75 38                	jne    fd <bootmain+0x5d>
@@ -119,3 +119,4 @@ Disassembly of section .text:
  109:	b8 00 8e ff ff       	mov    $0xffff8e00,%eax
  10e:	66 ef                	out    %ax,(%dx)
  110:	eb fe                	jmp    110 <bootmain+0x70>
+ ```

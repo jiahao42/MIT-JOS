@@ -8,7 +8,8 @@
 
 * At what point does the processor start executing 32-bit code? What exactly causes the switch from 16- to 32-bit mode?
 
-after a jmp or ljmp
+    * after a jmp or ljmp
+    * jmp )x8:0xfd157
 
 * What is the *last* instruction of the boot loader executed, and what is the first instruction of the kernel it just loaded?
 
