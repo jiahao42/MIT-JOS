@@ -9,7 +9,8 @@ Familiarize your self with assembly language meterial
 First of all, I would like to add this line in `~/.gdbinit` :
 `set disassembly-flavor intel`, this can make gdb use the Intel style assembly
 
-At first, the target architecture is assumed to be i8086, and
+At first, the target architecture is assumed to be i8086, and as we all know that i8086 can only reach memory of 1MB, as the layout below.
+The first instruction is `jmp 0xf000:0xe05b`, and it is in `[f000:fff0]`, which represents the address `0xffff0`, from the layout, we can see this address belongs  to the top of BIOS ROM. 
 ```
 +------------------+  <- 0xFFFFFFFF (4GB)
 |      32-bit      |
