@@ -1,5 +1,49 @@
-* First of all, I would like to add this line in ~/.gdbinit :
-    * set disassembly-flavor intel
+# MIT-JOS - lab1
+
+## Exercise 1
+Familiarize your self with assembly language meterial
+
+## Exercise 2
+* Use GDB command to trace into the ROM BIOS for a few more instructions and try to guess what it might be doing
+
+First of all, I would like to add this line in `~/.gdbinit` :
+`set disassembly-flavor intel`, this can make gdb use the Intel style assembly
+
+At first, the target architecture is assumed to be i8086, and
+```
++------------------+  <- 0xFFFFFFFF (4GB)
+|      32-bit      |
+|  memory mapped   |
+|     devices      |
+|                  |
+/\/\/\/\/\/\/\/\/\/\
+
+/\/\/\/\/\/\/\/\/\/\
+|                  |
+|      Unused      |
+|                  |
++------------------+  <- depends on amount of RAM
+|                  |
+|                  |
+| Extended Memory  |
+|                  |
+|                  |
++------------------+  <- 0x00100000 (1MB)
+|     BIOS ROM     |
++------------------+  <- 0x000F0000 (960KB)
+|  16-bit devices, |
+|  expansion ROMs  |
++------------------+  <- 0x000C0000 (768KB)
+|   VGA Display    |
++------------------+  <- 0x000A0000 (640KB)
+|                  |
+|    Low Memory    |
+|                  |
++------------------+  <- 0x00000000
+
+```
+
+
 
 * In gdb, after push the 3 parameters, it will call readseg() at 0x7d1b
     * pushing 0x0(at 0x7d0f), 0x1000(at 0x7d11) and 0x10000(at 0x7d16) in a sequence means push the parameters of readseg() onto stack

@@ -214,7 +214,7 @@ insl(int port, void *addr, int cnt)
     7ccb:	f2 6d                	repnz insl (%dx),%es:(%edi)
 
 	// read a sector
-	insl(0x1F0, dst, SECTSIZE/4);
+	insl(0x1F0, dst, SECTSIZE/4);//read 4 bytes a time, need 128 times
 }
     7ccd:	5b                   	pop    %ebx
     7cce:	5f                   	pop    %edi
