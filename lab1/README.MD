@@ -19,7 +19,9 @@ Let's trace step by step, I will make comments as well as I can:
 ```
 
 At first, the target architecture is assumed to be i8086, and as we all know that i8086 can only reach memory of 1MB, as the layout below.
+
 The first instruction is `jmp 0xf000:0xe05b`, and it is in `[f000:fff0]`, which represents the address `0xffff0`, from the layout, we can see this address belongs to the top of BIOS ROM. Since there is no room for instructions at `0xffff0`, so the first instruction is to jump to `0xe05b`.
+
 ```plain
                     +------------------+  <- 0xFFFFFFFF (4GB)
                     |      32-bit      |
@@ -67,15 +69,13 @@ And then, we can see these instructions:
 [f000:d128]    0xfd128:	cld    ;clear the direction flag
 ```
 The BIOS then makes some preparations for next stage, such as reset the `ax` register and set the `esp` register.
+
 The important instructions here are cli and cld, it clear the flags, especially the cli instruction, it disable the interrupts so that the following instructions will not be interrupted. As for cld, it clears the direction flag, set it to 0, it means the memory will grow from low memory to high memory.
 
 ```assembly
 [f000:d129]    0xfd129:	mov    eax,0x8f
 [f000:d12f]    0xfd12f:	out    0x70,al
 [f000:d131]    0xfd131:	in     al,0x71
-[f000:d133]    0xfd133:	in     al,0x92
-[f000:d135]    0xfd135:	or     al,0x2
-[f000:d137]    0xfd137:	out    0x92,al
 ```
 The `out` and `in` instructions are used to communicate with hardware devices through certain port and the `eax/ax/al` register.
 * `in` means to read a `byte/word/dword` from certain port to `al/ax/eax`
@@ -93,7 +93,34 @@ From that link above, we can see the port 0x70 is the CMOS RAM index register po
 		or the RTC wil be left in an unknown state.
 ```
 Since `0x8f == 0b1000 1111`, we can learn that the NMI has been disabled, NMI stands for `non-maskable interrupt`, [a non-maskable interrupt is a hardware interrupt that standard interrupt-masking techniques in the system cannot ignore. It typically occurs to signal attention for non-recoverable hardware errors](https://en.wikipedia.org/wiki/Non-maskable_interrupt).
+
 This is also to make sure the following interrupt would not be interrupted.
+
+You may be confused about why `in al,0x71` and `in al,0x92` execute in a row, the value read from port 0x71 in `al` will be covered by the value read from port 0x92, you may find the answer [here](http://stackoverflow.com/questions/42593957/bios-read-twice-from-different-port-to-the-same-register-in-a-row). Note that `any write to 0070 should be followed by an action to 0071
+or the RTC wil be left in an unknown state`, so this `in al, 0x71` is just to make RTC out of an unknown state.
+
+
+And then:
+```assembly
+[f000:d133]    0xfd133:	in     al,0x92
+[f000:d135]    0xfd135:	or     al,0x2
+[f000:d137]    0xfd137:	out    0x92,al
+```
+Also, we can check it [here](http://bochs.sourceforge.net/techspec/PORTS.LST), and this is all about port 0x92:
+```plain
+0092	r/w	PS/2 system control port A  (port B is at 0061)
+		 bit 7-6   any bit set to 1 turns activity light on
+		 bit 5	   reserved
+		 bit 4 = 1 watchdog timout occurred
+		 bit 3 = 0 RTC/CMOS security lock (on password area) unlocked
+		       = 1 CMOS locked (done by POST)
+		 bit 2	   reserved
+		 bit 1 = 1 indicates A20 active
+		 bit 0 = 0 system reset or write
+			 1 pulse alternate reset pin (alternate CPU reset)
+```
+We can see that it set the bit1 to 1, so this can activate [Fast A20 Gate](http://wiki.osdev.org/A20).
+
 
 
 
