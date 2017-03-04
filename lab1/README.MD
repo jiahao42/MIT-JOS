@@ -9,8 +9,17 @@ Familiarize your self with assembly language meterial
 First of all, I would like to add this line in `~/.gdbinit` :
 `set disassembly-flavor intel`, this can make gdb use the Intel style assembly
 
+The BIOS mainly do two things:
+* 1. switch the mode to i386
+* 2. transfer to the boot sector
+
+Let's trace step by step, I will make comments as well as I can:
+```
+[f000:fff0]    0xffff0:	jmp    0xf000:0xe05b
+```
+
 At first, the target architecture is assumed to be i8086, and as we all know that i8086 can only reach memory of 1MB, as the layout below.
-The first instruction is `jmp 0xf000:0xe05b`, and it is in `[f000:fff0]`, which represents the address `0xffff0`, from the layout, we can see this address belongs  to the top of BIOS ROM. 
+The first instruction is `jmp 0xf000:0xe05b`, and it is in `[f000:fff0]`, which represents the address `0xffff0`, from the layout, we can see this address belongs to the top of BIOS ROM. Since there is no room for instructions at `0xffff0`, so the first instruction is to jump to `0xe05b`.
 ```
 +------------------+  <- 0xFFFFFFFF (4GB)
 |      32-bit      |
@@ -44,6 +53,31 @@ The first instruction is `jmp 0xf000:0xe05b`, and it is in `[f000:fff0]`, which 
 
 ```
 
+And then, we can see these instructions:
+```
+[f000:e05b]    0xfe05b:	cmp    DWORD PTR cs:0x6574,0x0
+[f000:e062]    0xfe062:	jne    0xfd2b6
+[f000:e066]    0xfe066:	xor    ax,ax
+[f000:e068]    0xfe068:	mov    ss,ax
+[f000:e06a]    0xfe06a:	mov    esp,0x7000
+[f000:e070]    0xfe070:	mov    edx,0xf3c24
+[f000:e076]    0xfe076:	jmp    0xfd124
+[f000:d124]    0xfd124:	mov    ecx,eax
+[f000:d127]    0xfd127:	cli    ;clear interrupt flag
+[f000:d128]    0xfd128:	cld    ;clear the direction flag
+```
+The BIOS then makes some preparations for next stage, such as reset the `ax` register and set the `esp` register.
+The important instructions here are cli and cld, it clear the flags, especially the cli instruction, it disable the interrupts so that the following instructions will not be interrupted. As for cld, it clears the direction flag, set it to 0, it means the memory will grow from low memory to high memory.
+
+```
+[f000:d129]    0xfd129:	mov    eax,0x8f
+[f000:d12f]    0xfd12f:	out    0x70,al
+[f000:d131]    0xfd131:	in     al,0x71
+[f000:d133]    0xfd133:	in     al,0x92
+[f000:d135]    0xfd135:	or     al,0x2
+[f000:d137]    0xfd137:	out    0x92,al
+```
+The `out` and `in` instruction is to communicate with hardware devices through certain port. As for what the ports stand for, [check it here](http://bochs.sourceforge.net/techspec/PORTS.LST).
 
 
 * In gdb, after push the 3 parameters, it will call readseg() at 0x7d1b
