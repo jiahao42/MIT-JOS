@@ -1,11 +1,14 @@
 ## Exercise 1
-Familiarize your self with assembly language meterial
+> Exercise 1. Familiarize yourself with the assembly language materials available on the 6.828 reference page. You don't have to read them now, but you'll almost certainly want to refer to some of this material when reading and writing x86 assembly.
 <!-- more -->
+
+> We do recommend reading the section "The Syntax" in Brennan's Guide to Inline Assembly. It gives a good (and quite brief) description of the AT&T assembly syntax we'll be using with the GNU assembler in JOS.
+
 
 ---
 
 ## Exercise 2
-##### Use GDB command to trace into the ROM BIOS for a few more instructions and try to guess what it might be doing
+> Use GDB's si (Step Instruction) command to trace into the ROM BIOS for a few more instructions, and try to guess what it might be doing. You might want to look at Phil Storrs I/O Ports Description, as well as other materials on the 6.828 reference materials page. No need to figure out all the details - just the general idea of what the BIOS is doing first.
 
 First of all, I would like to add this line in `~/.gdbinit` :
 `set disassembly-flavor intel`, this can make gdb use the Intel style assembly
@@ -122,7 +125,7 @@ Also, we can check it [here](http://bochs.sourceforge.net/techspec/PORTS.LST), a
 ```
 We can see that it set the bit1 to 1, so this can activate [Fast A20 Gate](http://wiki.osdev.org/A20).
 
-```
+```assembly
 [f000:d139]    0xfd139:	lidtw  cs:0x6690
 [f000:d13f]    0xfd13f:	lgdtw  cs:0x6650
 [f000:d145]    0xfd145:	mov    eax,cr0
