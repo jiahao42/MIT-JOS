@@ -121,6 +121,20 @@ Also, we can check it [here](http://bochs.sourceforge.net/techspec/PORTS.LST), a
 ```
 We can see that it set the bit1 to 1, so this can activate [Fast A20 Gate](http://wiki.osdev.org/A20).
 
+```
+[f000:d139]    0xfd139:	lidtw  cs:0x6690
+[f000:d13f]    0xfd13f:	lgdtw  cs:0x6650
+[f000:d145]    0xfd145:	mov    eax,cr0
+[f000:d148]    0xfd148:	or     eax,0x1
+[f000:d14c]    0xfd14c:	mov    cr0,eax
+[f000:d14f]    0xfd14f:	jmp    0x8:0xfd157
+The target architecture is assumed to be i386
+```
+The lidtw and lgdtw instructions load a linear base address and limit value from a six-byte data operand in memory into the GDTR([register for GDT](https://en.wikipedia.org/wiki/Global_Descriptor_Table)) or IDTR([register for IDT](https://en.wikipedia.org/wiki/Interrupt_descriptor_table)).
+
+And then, it set the bit0 of `cr0` to 1 so that the system will change to protected mode, check the meaning of each bit of `cr0` [here](http://wiki.osdev.org/CPU_Registers_x86#CR0)
+
+
 
 
 
