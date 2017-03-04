@@ -3,8 +3,11 @@
 ## Exercise 1
 Familiarize your self with assembly language meterial
 <!-- more -->
+
+---
+
 ## Exercise 2
-* Use GDB command to trace into the ROM BIOS for a few more instructions and try to guess what it might be doing
+##### Use GDB command to trace into the ROM BIOS for a few more instructions and try to guess what it might be doing
 
 First of all, I would like to add this line in `~/.gdbinit` :
 `set disassembly-flavor intel`, this can make gdb use the Intel style assembly
@@ -134,9 +137,10 @@ The lidtw and lgdtw instructions load a linear base address and limit value from
 
 And then, it set the bit0 of `cr0` to 1 so that the system will change to protected mode, check the meaning of each bit of `cr0` [here](http://wiki.osdev.org/CPU_Registers_x86#CR0)
 
+The instructions later is really hard to understand for me, so I would just stop here temporarily.
 
 
-
+## Exercise 3
 
 ---
 
