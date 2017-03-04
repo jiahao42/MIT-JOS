@@ -21,35 +21,35 @@ Let's trace step by step, I will make comments as well as I can:
 At first, the target architecture is assumed to be i8086, and as we all know that i8086 can only reach memory of 1MB, as the layout below.
 The first instruction is `jmp 0xf000:0xe05b`, and it is in `[f000:fff0]`, which represents the address `0xffff0`, from the layout, we can see this address belongs to the top of BIOS ROM. Since there is no room for instructions at `0xffff0`, so the first instruction is to jump to `0xe05b`.
 ```
-+------------------+  <- 0xFFFFFFFF (4GB)
-|      32-bit      |
-|  memory mapped   |
-|     devices      |
-|                  |
-/\/\/\/\/\/\/\/\/\/\
+                    +------------------+  <- 0xFFFFFFFF (4GB)
+                    |      32-bit      |
+                    |  memory mapped   |
+                    |     devices      |
+                    |                  |
+                    /\/\/\/\/\/\/\/\/\/\
 
-/\/\/\/\/\/\/\/\/\/\
-|                  |
-|      Unused      |
-|                  |
-+------------------+  <- depends on amount of RAM
-|                  |
-|                  |
-| Extended Memory  |
-|                  |
-|                  |
-+------------------+  <- 0x00100000 (1MB)
-|     BIOS ROM     |
-+------------------+  <- 0x000F0000 (960KB)
-|  16-bit devices, |
-|  expansion ROMs  |
-+------------------+  <- 0x000C0000 (768KB)
-|   VGA Display    |
-+------------------+  <- 0x000A0000 (640KB)
-|                  |
-|    Low Memory    |
-|                  |
-+------------------+  <- 0x00000000
+                    /\/\/\/\/\/\/\/\/\/\
+                    |                  |
+                    |      Unused      |
+                    |                  |
+                    +------------------+  <- depends on amount of RAM
+                    |                  |
+                    |                  |
+                    | Extended Memory  |
+                    |                  |
+                    |                  |
+                    +------------------+  <- 0x00100000 (1MB)
+                    |     BIOS ROM     |
+                    +------------------+  <- 0x000F0000 (960KB)
+                    |  16-bit devices, |
+                    |  expansion ROMs  |
+                    +------------------+  <- 0x000C0000 (768KB)
+                    |   VGA Display    |
+                    +------------------+  <- 0x000A0000 (640KB)
+                    |                  |
+                    |    Low Memory    |
+                    |                  |
+                    +------------------+  <- 0x00000000
 
 ```
 
@@ -77,8 +77,25 @@ The important instructions here are cli and cld, it clear the flags, especially 
 [f000:d135]    0xfd135:	or     al,0x2
 [f000:d137]    0xfd137:	out    0x92,al
 ```
-The `out` and `in` instruction is to communicate with hardware devices through certain port. As for what the ports stand for, [check it here](http://bochs.sourceforge.net/techspec/PORTS.LST).
+The `out` and `in` instruction is to communicate with hardware devices through certain port and the `eax/ax/al` register.
+* `in` means to read a `byte/word/dword` from certain port to `al/ax/eax`
+* `out` means to write a `byte/word/dword` to certain port from `al/ax/eax`
 
+As for what the ports stand for, [check it here](http://bochs.sourceforge.net/techspec/PORTS.LST).
+From that link above, we can see the port 0x70 is the CMOS RAM index register port:
+```
+0070	w	CMOS RAM index register port (ISA, EISA)
+		 bit 7	 = 1  NMI disabled
+			 = 0  NMI enabled
+		 bit 6-0      CMOS RAM index (64 bytes, sometimes 128 bytes)
+
+		any write to 0070 should be followed by an action to 0071
+		or the RTC wil be left in an unknown state.
+```
+
+
+
+---
 
 * In gdb, after push the 3 parameters, it will call readseg() at 0x7d1b
     * pushing 0x0(at 0x7d0f), 0x1000(at 0x7d11) and 0x10000(at 0x7d16) in a sequence means push the parameters of readseg() onto stack
