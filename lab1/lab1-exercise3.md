@@ -6,6 +6,17 @@
 >Trace into bootmain() in boot/main.c, and then into readsect(). Identify the exact assembly instructions that correspond to each of the statements in readsect(). Trace through the rest of readsect() and back out into bootmain(), and identify the begin and end of the for loop that reads the remaining sectors of the kernel from the disk. Find out what code will run when the loop is finished, set a breakpoint there, and continue to that breakpoint. Then step through the remainder of the boot loader. **
 
 
+Ok, now we are going to trace the boot sector, using gdb as usual. After attaching gdb to qemu, input `b *0x7c00` to set breakpoint at 0x7c00, where the boot sector will be loaded.
+
+```
+[   0:7c00] => 0x7c00:	cli //disable interrupt
+[   0:7c01] => 0x7c01:	cld //clear direction flag
+[   0:7c02] => 0x7c02:	xor    ax,ax //clear ax
+[   0:7c04] => 0x7c04:	mov    ds,ax //clear ds
+[   0:7c06] => 0x7c06:	mov    es,ax //clear es
+[   0:7c08] => 0x7c08:	mov    ss,ax //clear ss
+```
+First, just like we talked about before in Exercise1&&2, these are the preparation instructions. You can see the usage of them according to the comment.
 
 ---
 
