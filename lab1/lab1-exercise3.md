@@ -23,7 +23,7 @@ First, just like we talked about before in Exercise1&&2, these are the preparati
 [   0:7c0c] => 0x7c0c:	test   al,0x2
 [   0:7c0e] => 0x7c0e:	jne    0x7c0a
 ```
-We can see according to the code above that these three instructions form a loop, it keeps checking the bit1 of the port 0x64, if this bit is not 1, then breaks.
+We can see according to the code above that these three instructions form a loop, it keeps checking the bit1 of the port 0x64, if this bit is not 1, then breaks. These instructions are used to guarantee this instructions executed before are fetched by CPU.
 check [here](http://bochs.sourceforge.net/techspec/PORTS.LST) to see how the port 0x64 works.
 
 ```
@@ -47,6 +47,19 @@ Evidently, this loop is trying to see whether the input buffer is full, if not, 
 [   0:7c14] => 0x7c14:	in     al,0x64
 [   0:7c16] => 0x7c16:	test   al,0x2
 [   0:7c18] => 0x7c18:	jne    0x7c14
+```
+Now the boot sector want to write 0xd1 to port 0x64, check [here](http://bochs.sourceforge.net/techspec/PORTS.LST) again, we can see things below:
+```
+D1	dbl   write output port. next byte written  to 0060
+			      will be written to the 804x output port; the
+			      original IBM AT and many compatibles use bit 1 of
+			      the output port to control the A20 gate.
+```
+Also, the last 3 instructions above which are also a loop is trying to see if the instructions before are fetched by CPU.
+
+```
+[   0:7c1a] => 0x7c1a:	mov    al,0xdf
+[   0:7c1c] => 0x7c1c:	out    0x60,al
 ```
 
 
