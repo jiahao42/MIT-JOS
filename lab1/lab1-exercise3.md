@@ -1,5 +1,6 @@
 ## Exercise 3
 >Take a look at the lab tools guide, especially the section on GDB commands. Even if you're familiar with GDB, this includes some esoteric GDB commands that are useful for OS work.
+<!-- more -->
 
 >Set a breakpoint at address 0x7c00, which is where the boot sector will be loaded. Continue execution until that breakpoint. Trace through the code in boot/boot.S, using the source code and the disassembly file obj/boot/boot.asm to keep track of where you are. Also use the x/i command in GDB to disassemble sequences of instructions in the boot loader, and compare the original boot loader source code with both the disassembly in obj/boot/boot.asm and GDB.
 
@@ -8,7 +9,7 @@
 ### All about boot.S
 Ok, now we are going to trace the boot sector, using gdb as usual. After attaching gdb to qemu, input `b *0x7c00` to set breakpoint at 0x7c00, where the boot sector will be loaded.
 
-```
+```assembly
 [   0:7c00] => 0x7c00:	cli ;disable interrupt
 [   0:7c01] => 0x7c01:	cld ;clear direction flag
 [   0:7c02] => 0x7c02:	xor    ax,ax ;clear ax
@@ -18,7 +19,7 @@ Ok, now we are going to trace the boot sector, using gdb as usual. After attachi
 ```
 First, just like we talked about before in Exercise1&&2, these are the preparation instructions. You can see the usage of them according to the comment.
 
-```
+```assembly
 [   0:7c0a] => 0x7c0a:	in     al,0x64
 [   0:7c0c] => 0x7c0c:	test   al,0x2
 [   0:7c0e] => 0x7c0e:	jne    0x7c0a
@@ -26,7 +27,7 @@ First, just like we talked about before in Exercise1&&2, these are the preparati
 We can see according to the code above that these three instructions form a loop, it keeps checking the bit1 of the port 0x64, if this bit is not 1, then breaks. These instructions are used to guarantee this instructions executed before are fetched by CPU.
 check [here](http://bochs.sourceforge.net/techspec/PORTS.LST) to see how the port 0x64 works.
 
-```
+```plain
 0064	r	KB controller read status (ISA, EISA)
 		 bit 7 = 1 parity error on transmission from keyboard
 		 bit 6 = 1 receive timeout
@@ -41,7 +42,7 @@ check [here](http://bochs.sourceforge.net/techspec/PORTS.LST) to see how the por
 ```
 Evidently, this loop is trying to see whether the input buffer is full, if not, then breaks the loop.
 
-```
+```assembly
 [   0:7c10] => 0x7c10:	mov    al,0xd1
 [   0:7c12] => 0x7c12:	out    0x64,al
 [   0:7c14] => 0x7c14:	in     al,0x64
@@ -49,7 +50,7 @@ Evidently, this loop is trying to see whether the input buffer is full, if not, 
 [   0:7c18] => 0x7c18:	jne    0x7c14
 ```
 Now the boot sector want to write 0xd1 to port 0x64, check [here](http://bochs.sourceforge.net/techspec/PORTS.LST) again, we can see things below:
-```
+```plain
 D1	dbl   write output port. next byte written  to 0060
 			      will be written to the 804x output port; the
 			      original IBM AT and many compatibles use bit 1 of
@@ -57,9 +58,32 @@ D1	dbl   write output port. next byte written  to 0060
 ```
 Also, the last 3 instructions above which are also a loop is trying to see if the instructions before are fetched by CPU.
 
-```
+```assembly
 [   0:7c1a] => 0x7c1a:	mov    al,0xdf
 [   0:7c1c] => 0x7c1c:	out    0x60,al
+```
+This is one problem that I haven't figured out yet, the `0xdf` is send to port `0x60`, but I think it is actually sent to port `0x64`, I don't know how it works.
+```
+0064	w  DF	sngl  enable address line A20 (HP Vectra only???)
+```
+
+```
+[   0:7c1e] => 0x7c1e:	lgdtw  ds:0x7c64 ;load Global Descriptor Table Register
+[   0:7c23] => 0x7c23:	mov    eax,cr0
+[   0:7c26] => 0x7c26:	or     eax,0x1
+[   0:7c2a] => 0x7c2a:	mov    cr0,eax ; set bit0 so it can change to protected mode check [here](http://wiki.osdev.org/CPU_Registers_x86#CR0)
+[   0:7c2d] => 0x7c2d:	jmp    0x8:0x7c32 ;jump to 32-bit code segment
+```
+
+```
+=> 0x7c32:	mov    ax,0x10 ; ax =  0x10 = kernel data segment selector
+=> 0x7c36:	mov    ds,eax  ; ds = 0x10
+=> 0x7c38:	mov    es,eax  ; es = 0x10
+=> 0x7c3a:	mov    fs,eax  ; fs = 0x10
+=> 0x7c3c:	mov    gs,eax  ; gs = 0x10
+=> 0x7c3e:	mov    ss,eax  ; ss = 0x10
+=> 0x7c40:	mov    esp,0x7c00 ; use 0x7c00 as the stack top, so the stack won't grow until cover the boot sector
+=> 0x7c45:	call   0x7d0a ;
 ```
 
 
