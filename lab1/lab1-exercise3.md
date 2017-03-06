@@ -94,16 +94,42 @@ While trace the main.c, I will draw the `stack` for you.
 => 0x7d0b:	mov    ebp,esp ; create new frame of bootmain
 => 0x7d0d:	push   esi
 => 0x7d0e:	push   ebx ; save the values used in the caller function
+=> 0x7d0f:	push   0x0 ; push parameter3 of the readseg
+=> 0x7d11:	push   0x1000 ; push parameter2 of the readseg
+=> 0x7d16:	push   0x10000 ; push parameter1 of the readseg
 ```
 At first, we should know something about how the stack works when calling functions. Look at the picture below:
 ![](http://images.cnitblog.com/i/569008/201405/271644419475745.jpg)
 We should now that the sequence of pushing data. First, if the function has parameters, push them from right to left, then push the `eip`, which is the return address of the caller function, and then it executes the normal `push ebp` and `mov ebp, esp`, and finally, then local variables.
 
+Until now, the stack should be like this:
+```
++------------------+  <-
+|                  |
++------------------+  <- esp = ebp-0x14 = 0x7be4
+|    0x00010000    |
++------------------+  <- ebp-0x10 = 0x7be8
+|    0x00001000    |
++------------------+  <- ebp-0xc = 0x7bec
+|    0x00000000    |
++------------------+  <- ebp-0x8 = 0x7bf0 : parameter3 of readseg
+|    0x00000000    |
++------------------+  <- ebp-0x4 = 0x7bf4 : value of ebx
+|    0x00000000    |
++------------------+  <- ebp = 0x7bf8 : value of esi
+|    0x00000000    |
++------------------+  <- 0x7bfc : ret address
+|    0x00007c4a    |
++------------------+  <- 0x7c00
+|     boot.S       |
++------------------+  <- 0x00007c00
+|                  |
++------------------+  <- 0x00000000
+
+```
+
 
 ```assembly
-=> 0x7d0f:	push   0x0 ; push parameter3 of the readseg
-=> 0x7d11:	push   0x1000 ; push parameter2 of the readseg
-=> 0x7d16:	push   0x10000 ; push parameter1 of the readseg
 => 0x7d1b:	call   0x7cd1 ; jump to readseg
 => 0x7cd1:	push   ebp
 => 0x7cd2:	mov    ebp,esp ; create new frame of readseg
