@@ -87,19 +87,29 @@ This is one problem that I haven't figured out yet, the `0xdf` is send to port `
 ```
 
 ### All about main.c
+While trace the main.c, I will draw the `stack` for you.
+
 ```assembly
 => 0x7d0a:	push   ebp
-=> 0x7d0b:	mov    ebp,esp ;create new frame
+=> 0x7d0b:	mov    ebp,esp ; create new frame of bootmain
 => 0x7d0d:	push   esi
-=> 0x7d0e:	push   ebx ;save the values used in the invoker
-=> 0x7d0f:	push   0x0 ;push parameter3 of the readseg
+=> 0x7d0e:	push   ebx ; save the values used in the invoker
+=> 0x7d0f:	push   0x0 ; push parameter3 of the readseg
 => 0x7d11:	push   0x1000 ; push parameter2 of the readseg
 => 0x7d16:	push   0x10000 ; push parameter1 of the readseg
 => 0x7d1b:	call   0x7cd1 ; jump to readseg
 => 0x7cd1:	push   ebp
-=> 0x7cd2:	mov    ebp,esp
-
+=> 0x7cd2:	mov    ebp,esp ; create new frame of readseg
+=> 0x7cd4:	push   edi ;
+=> 0x7cd5:	mov    edi,DWORD PTR [ebp+0xc] ; edi =
+=> 0x7cd8:	push   esi
+=> 0x7cd9:	mov    esi,DWORD PTR [ebp+0x10]
+=> 0x7cdc:	push   ebx
+=> 0x7cdd:	mov    ebx,DWORD PTR [ebp+0x8]
+=> 0x7ce0:	shr    esi,0x9
 ```
+
+how to fi
 
 
 
