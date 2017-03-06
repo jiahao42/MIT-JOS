@@ -63,11 +63,11 @@ Also, the last 3 instructions above which are also a loop is trying to see if th
 [   0:7c1c] => 0x7c1c:	out    0x60,al
 ```
 This is one problem that I haven't figured out yet, the `0xdf` is send to port `0x60`, but I think it is actually sent to port `0x64`, I don't know how it works.
-```
+```plain
 0064	w  DF	sngl  enable address line A20 (HP Vectra only???)
 ```
 
-```
+```assembly
 [   0:7c1e] => 0x7c1e:	lgdtw  ds:0x7c64 ;load Global Descriptor Table Register
 [   0:7c23] => 0x7c23:	mov    eax,cr0
 [   0:7c26] => 0x7c26:	or     eax,0x1
@@ -75,7 +75,7 @@ This is one problem that I haven't figured out yet, the `0xdf` is send to port `
 [   0:7c2d] => 0x7c2d:	jmp    0x8:0x7c32 ;jump to 32-bit code segment
 ```
 
-```
+```assembly
 => 0x7c32:	mov    ax,0x10 ; ax =  0x10 = kernel data segment selector
 => 0x7c36:	mov    ds,eax  ; ds = 0x10
 => 0x7c38:	mov    es,eax  ; es = 0x10
@@ -83,12 +83,28 @@ This is one problem that I haven't figured out yet, the `0xdf` is send to port `
 => 0x7c3c:	mov    gs,eax  ; gs = 0x10
 => 0x7c3e:	mov    ss,eax  ; ss = 0x10
 => 0x7c40:	mov    esp,0x7c00 ; use 0x7c00 as the stack top, so the stack won't grow until cover the boot sector
-=> 0x7c45:	call   0x7d0a ;
+=> 0x7c45:	call   0x7d0a  ; jump to bootmain C function
+```
+
+### All about main.c
+```assembly
+=> 0x7d0a:	push   ebp
+=> 0x7d0b:	mov    ebp,esp ;create new frame
+=> 0x7d0d:	push   esi
+=> 0x7d0e:	push   ebx ;save the values used in the invoker
+=> 0x7d0f:	push   0x0 ;push parameter3 of the readseg
+=> 0x7d11:	push   0x1000 ; push parameter2 of the readseg
+=> 0x7d16:	push   0x10000 ; push parameter1 of the readseg
+=> 0x7d1b:	call   0x7cd1 ; jump to readseg
+=> 0x7cd1:	push   ebp
+=> 0x7cd2:	mov    ebp,esp
+
 ```
 
 
-### All about main.c
 
+### Another way to see it
+`cat kernel.img | xxd | head -n 32`
 
 
 ---
