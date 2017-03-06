@@ -93,7 +93,14 @@ While trace the main.c, I will draw the `stack` for you.
 => 0x7d0a:	push   ebp
 => 0x7d0b:	mov    ebp,esp ; create new frame of bootmain
 => 0x7d0d:	push   esi
-=> 0x7d0e:	push   ebx ; save the values used in the invoker
+=> 0x7d0e:	push   ebx ; save the values used in the caller function
+```
+At first, we should know something about how the stack works when calling functions. Look at the picture below:
+![](http://images.cnitblog.com/i/569008/201405/271644419475745.jpg)
+We should now that the sequence of pushing data. First, if the function has parameters, push them from right to left, then push the `eip`, which is the return address of the caller function, and then it executes the normal `push ebp` and `mov ebp, esp`, and finally, then local variables.
+
+
+```assembly
 => 0x7d0f:	push   0x0 ; push parameter3 of the readseg
 => 0x7d11:	push   0x1000 ; push parameter2 of the readseg
 => 0x7d16:	push   0x10000 ; push parameter1 of the readseg
