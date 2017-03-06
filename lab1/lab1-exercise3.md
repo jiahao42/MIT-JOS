@@ -103,30 +103,46 @@ At first, we should know something about how the stack works when calling functi
 We should now that the sequence of pushing data. First, if the function has parameters, push them from right to left, then push the `eip`, which is the return address of the caller function, and then it executes the normal `push ebp` and `mov ebp, esp`, and finally, then local variables.
 
 Until now, the stack should be like this:
-```
-+------------------+  <-
-|                  |
-+------------------+  <- esp = ebp-0x14 = 0x7be4
-|    0x00010000    |
-+------------------+  <- ebp-0x10 = 0x7be8
-|    0x00001000    |
-+------------------+  <- ebp-0xc = 0x7bec
-|    0x00000000    |
-+------------------+  <- ebp-0x8 = 0x7bf0 : parameter3 of readseg
-|    0x00000000    |
-+------------------+  <- ebp-0x4 = 0x7bf4 : value of ebx
-|    0x00000000    |
-+------------------+  <- ebp = 0x7bf8 : value of esi
-|    0x00000000    |
-+------------------+  <- 0x7bfc : ret address
-|    0x00007c4a    |
-+------------------+  <- 0x7c00
-|     boot.S       |
-+------------------+  <- 0x00007c00
-|                  |
-+------------------+  <- 0x00000000
+```plain
+          +------------------+  <-
+          |                  |
+          +------------------+  <- esp = ebp-0x14 = 0x7be4
+          |    0x00010000    |
+          +------------------+  <- ebp-0x10 = 0x7be8
+          |    0x00001000    |
+          +------------------+  <- ebp-0xc = 0x7bec
+          |    0x00000000    |
+          +------------------+  <- ebp-0x8 = 0x7bf0 : parameter3 of readseg
+          |    0x00000000    |
+          +------------------+  <- ebp-0x4 = 0x7bf4 : value of ebx
+          |    0x00000000    |
+          +------------------+  <- ebp = 0x7bf8 : value of esi
+          |    0x00000000    |
+          +------------------+  <- 0x7bfc : ret address
+          |    0x00007c4a    |
+          +------------------+  <- 0x7c00
+          |     boot.S       |
+          +------------------+  <-
+          |                  |
+          +------------------+  <- 0x00000000
 
 ```
+We can see the return address `0x00007c4a` and the original `esp` `0x7c00` in `boot.asm`:
+```plain
+# Set up the stack pointer and call into C.
+movl    $start, %esp
+  7c40:	bc 00 7c 00 00       	mov    $0x7c00,%esp
+call bootmain
+  7c45:	e8 c0 00 00 00       	call   7d0a <bootmain>
+
+00007c4a <spin>:
+
+# If bootmain returns (it shouldn't), loop.
+spin:
+jmp spin
+  7c4a:	eb fe                	jmp    7c4a <spin>
+```
+we can see `move $0x7c00, $esp` and `jmp 7c4a`.
 
 
 ```assembly
