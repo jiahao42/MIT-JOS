@@ -118,9 +118,9 @@ Until now, the stack should be like this:
           |    0x00000000    |
           +------------------+  <- ebp = 0x7bf8 : value of esi
           |    0x00000000    |
-          +------------------+  <- 0x7bfc : ret address
+          +------------------+  <- 0x7bfc : ebp of former function
           |    0x00007c4a    |
-          +------------------+  <- 0x7c00
+          +------------------+  <- 0x7c00 : ret address
           |     boot.S       |
           +------------------+  <-
           |                  |
@@ -166,13 +166,13 @@ Now the stack looks like this:
 |    0x00010000    |
 +------------------+  <-
 |    0x00001000    |
-+------------------+  <- ebp-0x4 = 0x7bd4 : [ebp+0xc]=[0x7de8]=0x10000
++------------------+  <- ebp-0x4 = 0x7bd4 : value of edi
+|    0x00001000    |
++------------------+  <- 0x7bd8 : [ebp+0xc]=[0x7de8]=0x10000
 |    0x00000000    |
-+------------------+  <- ebp = 0x7bd8 : value of edi
-|    0x00000000    |
-+------------------+  <- 0x7bdc : ebp of bootmain
++------------------+  <- 0x7bdc : ebp = value of edi
 |    0x00007df8    |
-+------------------+  <- 0x7be0
++------------------+  <- 0x7be0 : ebp of bootmain
 |    0x00007d20    |
 +------------------+  <- 0x7be4 : return address
 | stack of bootmain|
