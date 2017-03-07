@@ -142,7 +142,7 @@ spin:
 jmp spin
   7c4a:	eb fe                	jmp    7c4a <spin>
 ```
-we can see `move $0x7c00, $esp` and `jmp 7c4a`.
+we can see `move $0x7c00, $esp` and `jmp 7c4a` here.
 
 
 ```assembly
@@ -158,7 +158,30 @@ we can see `move $0x7c00, $esp` and `jmp 7c4a`.
 => 0x7ce0:	shr    esi,0x9
 ```
 
-how to fi
+Now the stack looks like this:
+```
++------------------+  <-
+|                  |
++------------------+  <-
+|    0x00010000    |
++------------------+  <-
+|    0x00001000    |
++------------------+  <- ebp-0x4 = 0x7bd4 : [ebp+0xc]=[0x7de8]=0x10000
+|    0x00000000    |
++------------------+  <- ebp = 0x7bd8 : value of edi
+|    0x00000000    |
++------------------+  <- 0x7bdc : ebp of bootmain
+|    0x00007df8    |
++------------------+  <- 0x7be0
+|    0x00007d20    |
++------------------+  <- 0x7be4 : return address
+| stack of bootmain|
++------------------+  <- 0x7c00
+|     boot.S       |
++------------------+  <-
+|                  |
++------------------+  <- 0x00000000
+```
 
 
 
