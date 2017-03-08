@@ -106,21 +106,21 @@ Until now, the stack should be like this:
 ```plain
           +------------------+  <-
           |                  |
-          +------------------+  <- esp = ebp-0x14 = 0x7be4
+          +------------------+  <- esp = ebp-0x14 = 0x7be4 : parameter11 of readseg
           |    0x00010000    |
-          +------------------+  <- ebp-0x10 = 0x7be8
+          +------------------+  <- ebp-0x10 = 0x7be8 : parameter2 of readseg
           |    0x00001000    |
-          +------------------+  <- ebp-0xc = 0x7bec
+          +------------------+  <- ebp-0xc = 0x7bec : parameter3 of readseg
           |    0x00000000    |
-          +------------------+  <- ebp-0x8 = 0x7bf0 : parameter3 of readseg
+          +------------------+  <- ebp-0x8 = 0x7bf0 : value of ebx
           |    0x00000000    |
-          +------------------+  <- ebp-0x4 = 0x7bf4 : value of ebx
+          +------------------+  <- ebp-0x4 = 0x7bf4 : value of esi
           |    0x00000000    |
-          +------------------+  <- ebp = 0x7bf8 : value of esi
+          +------------------+  <- ebp = 0x7bf8 : ebp of former function
           |    0x00000000    |
-          +------------------+  <- 0x7bfc : ebp of former function
+          +------------------+  <- 0x7bfc : ret address
           |    0x00007c4a    |
-          +------------------+  <- 0x7c00 : ret address
+          +------------------+  <- 0x7c00 : original esp
           |     boot.S       |
           +------------------+  <-
           |                  |
@@ -164,17 +164,17 @@ Now the stack looks like this:
 |                  |
 +------------------+  <-
 |    0x00010000    |
-+------------------+  <- ebp-0xc = 0x7bd0
++------------------+  <- ebp-0xc = 0x7bd0 : value of ebx = 0
 |    0x00000000    |
-+------------------+  <- ebp-0x8 = 0x7bd4 : value of ebx = 0
++------------------+  <- ebp-0x8 = 0x7bd4 : value of esi = 0
 |    0x00000000    |
-+------------------+  <- ebp-0x4 = 0x7bd8 : value of esi = 0
++------------------+  <- ebp-0x4 = 0x7bd8 : value of edi = 0
 |    0x00000000    |
-+------------------+  <- ebp = 0x7bdc : value of edi = 0
++------------------+  <- ebp = 0x7bdc : ebp of bootmain
 |    0x00007df8    |
-+------------------+  <- 0x7be0 : ebp of bootmain
++------------------+  <- 0x7be0 : return address
 |    0x00007d20    |
-+------------------+  <- 0x7be4 : return address
++------------------+  <- 0x7be4 : original esp
 | stack of bootmain|
 +------------------+  <- 0x7c00
 |     boot.S       |
