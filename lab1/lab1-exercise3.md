@@ -149,20 +149,20 @@ we can see `move $0x7c00, $esp` and `jmp 7c4a` here.
 => 0x7d1b:	call   0x7cd1 ; jump to readseg
 => 0x7cd1:	push   ebp
 => 0x7cd2:	mov    ebp,esp ; create new frame of readseg
-=> 0x7cd4:	push   edi ;
-=> 0x7cd5:	mov    edi,DWORD PTR [ebp+0xc] ; edi =
-=> 0x7cd8:	push   esi
-=> 0x7cd9:	mov    esi,DWORD PTR [ebp+0x10]
-=> 0x7cdc:	push   ebx
-=> 0x7cdd:	mov    ebx,DWORD PTR [ebp+0x8]
-=> 0x7ce0:	shr    esi,0x9
+=> 0x7cd4:	push   edi ; save the value
+=> 0x7cd5:	mov    edi,DWORD PTR [ebp+0xc] ; edi = [0x7ce8] = 0x1000
+=> 0x7cd8:	push   esi ; save the value
+=> 0x7cd9:	mov    esi,DWORD PTR [ebp+0x10] ; esi = [0x7ce8] = 0
+=> 0x7cdc:	push   ebx ; save the value
+=> 0x7cdd:	mov    ebx,DWORD PTR [ebp+0x8] ; ebx = [0x7ce4] = 0x10000
+=> 0x7ce0:	shr    esi,0x9 ; esi /= 512
 ```
 
 Now the stack looks like this:
-```
+```plain
 +------------------+  <-
 |                  |
-+------------------+  <-
++------------------+  <- ebp-0x10 = 0x7bcc :
 |    0x00010000    |
 +------------------+  <- ebp-0xc = 0x7bd0 : value of ebx = 0
 |    0x00000000    |
@@ -174,7 +174,7 @@ Now the stack looks like this:
 |    0x00007df8    |
 +------------------+  <- 0x7be0 : return address
 |    0x00007d20    |
-+------------------+  <- 0x7be4 : original esp
++------------------+  <- 0x7be4 : former esp
 | stack of bootmain|
 +------------------+  <- 0x7c00
 |     boot.S       |
