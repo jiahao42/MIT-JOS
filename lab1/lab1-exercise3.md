@@ -156,6 +156,10 @@ we can see `move $0x7c00, $esp` and `jmp 7c4a` here.
 => 0x7cdc:	push   ebx ; save the value
 => 0x7cdd:	mov    ebx,DWORD PTR [ebp+0x8] ; ebx = [0x7ce4] = 0x10000
 => 0x7ce0:	shr    esi,0x9 ; esi /= 512
+=> 0x7ce3:	add    edi,ebx ; edi = 0x1000 + 0x10000 = 0x11000
+=> 0x7ce5:	inc    esi ; esi = 1
+=> 0x7ce6:	and    ebx,0xfffffe00 ; ebx = 0x10000 & ~(512-1) = 0x10000
+=> 0x7cec:	cmp    ebx,edi ; 0x10000 vs 0x11000
 ```
 
 Now the stack looks like this:
@@ -183,6 +187,15 @@ Now the stack looks like this:
 +------------------+  <- 0x00000000
 ```
 
+The next instructions:
+```assembly
+=> 0x7cee:	jae    0x7d02
+=> 0x7cf0:	push   esi
+=> 0x7cf1:	inc    esi
+=> 0x7cf2:	push   ebx
+=> 0x7cf3:	add    ebx,0x200
+=> 0x7cf9:	call   0x7c7c
+```
 
 
 ### Another way to see it
