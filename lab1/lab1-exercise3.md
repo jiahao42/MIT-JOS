@@ -152,22 +152,30 @@ we can see `move $0x7c00, $esp` and `jmp 7c4a` here.
 => 0x7cd4:	push   edi ; save the value
 => 0x7cd5:	mov    edi,DWORD PTR [ebp+0xc] ; edi = [0x7ce8] = 0x1000
 => 0x7cd8:	push   esi ; save the value
-=> 0x7cd9:	mov    esi,DWORD PTR [ebp+0x10] ; esi = [0x7ce8] = 0
+=> 0x7cd9:	mov    esi,DWORD PTR [ebp+0x10] ; esi = offset = [0x7ce8] = 0
 => 0x7cdc:	push   ebx ; save the value
 => 0x7cdd:	mov    ebx,DWORD PTR [ebp+0x8] ; ebx = [0x7ce4] = 0x10000
 => 0x7ce0:	shr    esi,0x9 ; esi /= 512
 => 0x7ce3:	add    edi,ebx ; edi = 0x1000 + 0x10000 = 0x11000
-=> 0x7ce5:	inc    esi ; esi = 1
+=> 0x7ce5:	inc    esi ; esi = offset = 1
 => 0x7ce6:	and    ebx,0xfffffe00 ; ebx = 0x10000 & ~(512-1) = 0x10000
 => 0x7cec:	cmp    ebx,edi ; 0x10000 vs 0x11000
+=> 0x7cee:	jae    0x7d02 ; if 0x10000 > 0x11000 then jump
+=> 0x7cf0:	push   esi ; push offset = 1
+=> 0x7cf1:	inc    esi ; offset++ -> offset = 2
+=> 0x7cf2:	push   ebx ; push 0x10000
+=> 0x7cf3:	add    ebx,0x200 ; pa += 512 = 0x10200
+=> 0x7cf9:	call   0x7c7c ; call readseg
 ```
 
 Now the stack looks like this:
 ```plain
 +------------------+  <-
 |                  |
-+------------------+  <- ebp-0x10 = 0x7bcc :
++------------------+  <- ebp-0x14 = 0x7bc8 : pa = 0x10000
 |    0x00010000    |
++------------------+  <- ebp-0x10 = 0x7bcc : offset = 1
+|    0x00000001    |
 +------------------+  <- ebp-0xc = 0x7bd0 : value of ebx = 0
 |    0x00000000    |
 +------------------+  <- ebp-0x8 = 0x7bd4 : value of esi = 0
@@ -189,12 +197,34 @@ Now the stack looks like this:
 
 The next instructions:
 ```assembly
-=> 0x7cee:	jae    0x7d02
-=> 0x7cf0:	push   esi
-=> 0x7cf1:	inc    esi
-=> 0x7cf2:	push   ebx
-=> 0x7cf3:	add    ebx,0x200
 => 0x7cf9:	call   0x7c7c
+=> 0x7c7c:	push   ebp
+=> 0x7c7d:	mov    ebp,esp
+=> 0x7c7f:	push   edi ; 0x11000
+=> 0x7c80:	push   ebx ; 0x10200
+=> 0x7c81:	mov    ebx,DWORD PTR [ebp+0xc] ; [0x7bcc] = offset = 1
+```
+Now the stack is :
+```plain
++------------------+  <- ebp-0xc = 0x7bb4
+|                  |
++------------------+  <- ebp-0x8 = 0x7bb8 : ebx = 0x10200
+|    0x00010200    |
++------------------+  <- ebp-0x4= 0x7bbc : edi = 0x11000
+|    0x00011000    |
++------------------+  <- ebp=0x7bc0 : former ebp
+|    0x00007bdc    |
++------------------+  <- 0x7bc4 : return address
+|    0x00007cfe    |
++------------------+  <- 0x7bc8 : former esp
+| stack of readseg |
++------------------+  <- 0x7be4 : former esp
+| stack of bootmain|
++------------------+  <- 0x7c00
+|     boot.S       |
++------------------+  <-
+|                  |
++------------------+  <- 0x00000000
 ```
 
 
