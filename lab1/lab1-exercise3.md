@@ -73,9 +73,6 @@ This is one problem that I haven't figured out yet, the `0xdf` is send to port `
 [   0:7c26] => 0x7c26:	or     eax,0x1
 [   0:7c2a] => 0x7c2a:	mov    cr0,eax ; set bit0 so it can change to protected mode check [here](http://wiki.osdev.org/CPU_Registers_x86#CR0)
 [   0:7c2d] => 0x7c2d:	jmp    0x8:0x7c32 ;jump to 32-bit code segment
-```
-
-```assembly
 => 0x7c32:	mov    ax,0x10 ; ax =  0x10 = kernel data segment selector
 => 0x7c36:	mov    ds,eax  ; ds = 0x10
 => 0x7c38:	mov    es,eax  ; es = 0x10
@@ -264,7 +261,7 @@ And after executing the last two instructions of `waitdisk`:
 => 0x7c7b:	ret
 ```
 The stack changes back:
-```
+```plain
 +------------------+  <- 0x7bb8 : former esp
 | stack of readsect|
 +------------------+  <- 0x7bc8 : former esp
@@ -275,7 +272,7 @@ The stack changes back:
 ```
 
 And then, it will execute the following C code, and because it is not special at all, I won't draw the stack for these code.
-```
+```C
 outb(0x1F2, 1);		// count = 1
 outb(0x1F3, offset);
 outb(0x1F4, offset >> 8);
@@ -288,7 +285,7 @@ waitdisk();
 ```
 
 The last several instructions are very important:
-```
+```assembly
 => 0x7cbd:	mov    edi,DWORD PTR [ebp+0x8] ; [0x7bc0+0x8] = 0x10000
 => 0x7cc0:	mov    ecx,0x80 ; SECTSIZE / 4 = 0x80
 => 0x7cc5:	mov    edx,0x1f0 ; port
@@ -301,7 +298,8 @@ The last several instructions are very important:
 ```
 The most important instruction above is `repnz ins DWORD PTR es:[edi],dx`, it executes 128 times, what exactly does it do?
 Check [here](http://stackoverflow.com/questions/26783797/repnz-scas-assembly-instruction-specifics) to understand the prefix `repnz`, it mainly do this:
-```
+
+```c
 while (ecx != 0) {
     temp = al - *(BYTE *)edi;
     SetStatusFlags(temp);
@@ -312,10 +310,13 @@ while (ecx != 0) {
     ecx = ecx - 1;
     if (ZF == 1) break;
 }
+
 ```
+
+
 Now that the `ecx` is `0x80` first, the we can explain why it executes 128 times.
 About the `ins` instruction, check [here](https://docs.oracle.com/cd/E19455-01/806-3773/6jct9o0aj/index.html).
-```
+```plain
 ins instruction. After a transfer occurs, the destination-index register is automatically incremented or decremented as determined by the value of the direction flag (DF). The index register is incremented if DF = 0 (DF cleared by a cld instruction); it is decremented if DF = 1 (DF set by a std instruction). The increment or decrement count is 1 for a byte transfer, 2 for a word, and 4 for a long. Use the rep prefix with the ins instruction for a block transfer of CX bytes or words.
 ```
 It transfers a string from the port `0x1f7`, which is the port of drive, to certain memory which is determined by `es:[edi]`. Since the `ecx` decreases 1 at a time, we can learn that it reads 4 bytes at a time. And the data will be transfered to the memory that starts with `es:0x10000`.
