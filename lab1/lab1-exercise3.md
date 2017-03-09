@@ -272,7 +272,32 @@ The stack changes back:
 +------------------+  <- 0x7be4 : former esp
 |       ...        |
 +------------------+  <- 0x0000
+```
 
+And then, it will execute the following C code, and because it is not special at all, I won't draw the stack for these code.
+```
+outb(0x1F2, 1);		// count = 1
+outb(0x1F3, offset);
+outb(0x1F4, offset >> 8);
+outb(0x1F5, offset >> 16);
+outb(0x1F6, (offset >> 24) | 0xE0);
+outb(0x1F7, 0x20);	// cmd 0x20 - read sectors
+
+// wait for disk to be ready
+waitdisk();
+```
+
+The last several instructions are very important:
+```
+=> 0x7cbd:	mov    edi,DWORD PTR [ebp+0x8] ; [0x7bc0+0x8] = 0x10000
+=> 0x7cc0:	mov    ecx,0x80 ; SECTSIZE / 4 = 0x80
+=> 0x7cc5:	mov    edx,0x1f0 ; port
+=> 0x7cca:	cld  ; clear the direction flag
+=> 0x7ccb:	repnz ins DWORD PTR es:[edi],dx ; execute 128 times!!!
+=> 0x7ccd:	pop    ebx
+=> 0x7cce:	pop    edi
+=> 0x7ccf:	pop    ebp
+=> 0x7cd0:	ret
 ```
 
 
