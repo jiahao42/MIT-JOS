@@ -206,7 +206,42 @@ The next instructions:
 ```
 Now the stack is :
 ```plain
-+------------------+  <- ebp-0xc = 0x7bb4
++------------------+  <-
+|                  |
++------------------+  <- ebp-0x8 = 0x7bb8 : ebx = 0x10200
+|    0x00010200    |
++------------------+  <- ebp-0x4= 0x7bbc : edi = 0x11000
+|    0x00011000    |
++------------------+  <- ebp=0x7bc0 : former ebp
+|    0x00007bdc    |
++------------------+  <- 0x7bc4 : return address
+|    0x00007cfe    |
++------------------+  <- 0x7bc8 : former esp
+| stack of readseg |
++------------------+  <- 0x7be4 : former esp
+| stack of bootmain|
++------------------+  <- 0x7c00
+|     boot.S       |
++------------------+  <-
+|                  |
++------------------+  <- 0x00000000
+```
+
+Now, we are going to trace the `waitdisk` function.
+```assembly
+=> 0x7c84:	call   0x7c6a
+=> 0x7c6a:	push   ebp
+=> 0x7c6b:	mov    edx,0x1f7
+=> 0x7c70:	mov    ebp,esp
+=> 0x7c72:	in     al,dx
+=> 0x7c73:	and    eax,0xffffffc0
+=> 0x7c76:	cmp    al,0x40
+=> 0x7c78:	jne    0x7c72
+```
+And the stack:
+
+```plain
++------------------+  <-
 |                  |
 +------------------+  <- ebp-0x8 = 0x7bb8 : ebx = 0x10200
 |    0x00010200    |
