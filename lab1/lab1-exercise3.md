@@ -318,7 +318,8 @@ About the `ins` instruction, check [here](https://docs.oracle.com/cd/E19455-01/8
 ```
 ins instruction. After a transfer occurs, the destination-index register is automatically incremented or decremented as determined by the value of the direction flag (DF). The index register is incremented if DF = 0 (DF cleared by a cld instruction); it is decremented if DF = 1 (DF set by a std instruction). The increment or decrement count is 1 for a byte transfer, 2 for a word, and 4 for a long. Use the rep prefix with the ins instruction for a block transfer of CX bytes or words.
 ```
-It transfers a string from the port `0x1f7`, which is the port of drive, to certain memory which is determined by `es:[edi]`.
+It transfers a string from the port `0x1f7`, which is the port of drive, to certain memory which is determined by `es:[edi]`. Since the `ecx` decreases 1 at a time, we can learn that it reads 4 bytes at a time. And the data will be transfered to the memory that starts with `es:0x10000`.
+We can verify it before and after these instructions. When the instruction has not executed, the value at `0x10000-0x10004` is `0x00000000`, however, after executing the instruction once, the memory will be changed to `0x7f 0x45 0x4c 0x46`, which is `.ELF` in ASCII, also is the magic number of [ELF header](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format#File_header). We should be aware that the kernel image is an ELF file.
 
 
 ### Another way to see it
