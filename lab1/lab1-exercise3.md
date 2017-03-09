@@ -189,10 +189,6 @@ Now the stack looks like this:
 +------------------+  <- 0x7be4 : former esp
 | stack of bootmain|
 +------------------+  <- 0x7c00
-|     boot.S       |
-+------------------+  <-
-|                  |
-+------------------+  <- 0x00000000
 ```
 
 The next instructions:
@@ -221,46 +217,64 @@ Now the stack is :
 +------------------+  <- 0x7be4 : former esp
 | stack of bootmain|
 +------------------+  <- 0x7c00
-|     boot.S       |
-+------------------+  <-
-|                  |
-+------------------+  <- 0x00000000
 ```
 
 Now, we are going to trace the `waitdisk` function.
 ```assembly
-=> 0x7c84:	call   0x7c6a
+=> 0x7c84:	call   0x7c6a ; call waitdisk()
 => 0x7c6a:	push   ebp
-=> 0x7c6b:	mov    edx,0x1f7
+=> 0x7c6b:	mov    edx,0x1f7 ; the port
 => 0x7c70:	mov    ebp,esp
-=> 0x7c72:	in     al,dx
+=> 0x7c72:	in     al,dx ; read from the port
 => 0x7c73:	and    eax,0xffffffc0
 => 0x7c76:	cmp    al,0x40
-=> 0x7c78:	jne    0x7c72
+=> 0x7c78:	jne    0x7c72 ; if the drive is not ready, keep reading from it until it is ready
 ```
-And the stack:
+Check what the bit6 of port 0x1f7 can do :
+```
+01F7	r	status register
+		 bit 7 = 1  controller is executing a command
+		 bit 6 = 1  drive is ready
+		 bit 5 = 1  write fault
+		 bit 4 = 1  seek complete
+		 bit 3 = 1  sector buffer requires servicing
+		 bit 2 = 1  disk data read successfully corrected
+		 bit 1 = 1  index - set to 1 each disk revolution
+		 bit 0 = 1  previous command ended in an error
+```
+And the stack just changes a little:
 
 ```plain
 +------------------+  <-
 |                  |
-+------------------+  <- ebp-0x8 = 0x7bb8 : ebx = 0x10200
-|    0x00010200    |
-+------------------+  <- ebp-0x4= 0x7bbc : edi = 0x11000
-|    0x00011000    |
-+------------------+  <- ebp=0x7bc0 : former ebp
-|    0x00007bdc    |
-+------------------+  <- 0x7bc4 : return address
-|    0x00007cfe    |
++------------------+  <- ebp = esp = 7x7bb0 : former ebp
+|    0x00007bc0    |
++------------------+  <- 0x7bb4 : return adderss
+|    0x00007c89    |
++------------------+  <- 0x7bb8 : former esp
+| stack of readsect|
 +------------------+  <- 0x7bc8 : former esp
 | stack of readseg |
 +------------------+  <- 0x7be4 : former esp
-| stack of bootmain|
-+------------------+  <- 0x7c00
-|     boot.S       |
-+------------------+  <-
-|                  |
-+------------------+  <- 0x00000000
 ```
+
+And after executing the last two instructions of `waitdisk`:
+```assembly
+=> 0x7c7a:	pop    ebp
+=> 0x7c7b:	ret
+```
+The stack changes back:
+```
++------------------+  <- 0x7bb8 : former esp
+| stack of readsect|
++------------------+  <- 0x7bc8 : former esp
+| stack of readseg |
++------------------+  <- 0x7be4 : former esp
+|       ...        |
++------------------+  <- 0x0000
+
+```
+
 
 
 ### Another way to see it
