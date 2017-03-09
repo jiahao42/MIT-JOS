@@ -299,7 +299,26 @@ The last several instructions are very important:
 => 0x7ccf:	pop    ebp
 => 0x7cd0:	ret
 ```
-
+The most important instruction above is `repnz ins DWORD PTR es:[edi],dx`, it executes 128 times, what exactly does it do?
+Check [here](http://stackoverflow.com/questions/26783797/repnz-scas-assembly-instruction-specifics) to understand the prefix `repnz`, it mainly do this:
+```
+while (ecx != 0) {
+    temp = al - *(BYTE *)edi;
+    SetStatusFlags(temp);
+    if (DF == 0)   // DF = Direction Flag
+        edi = edi + 1;
+    else
+        edi = edi - 1;
+    ecx = ecx - 1;
+    if (ZF == 1) break;
+}
+```
+Now that the `ecx` is `0x80` first, the we can explain why it executes 128 times.
+About the `ins` instruction, check [here](https://docs.oracle.com/cd/E19455-01/806-3773/6jct9o0aj/index.html).
+```
+ins instruction. After a transfer occurs, the destination-index register is automatically incremented or decremented as determined by the value of the direction flag (DF). The index register is incremented if DF = 0 (DF cleared by a cld instruction); it is decremented if DF = 1 (DF set by a std instruction). The increment or decrement count is 1 for a byte transfer, 2 for a word, and 4 for a long. Use the rep prefix with the ins instruction for a block transfer of CX bytes or words.
+```
+It transfers a string from the port `0x1f7`, which is the port of drive, to certain memory which is determined by `es:[edi]`.
 
 
 ### Another way to see it
