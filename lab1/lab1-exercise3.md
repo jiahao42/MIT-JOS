@@ -426,24 +426,26 @@ To sum up, we can see what the code above is doing, read `count(0x1000)`
 +------------------+  <- 0x7c00
 ```
 
-The I choose to see the C code:
-```C
-// is this a valid ELF?
-if (ELFHDR->e_magic != ELF_MAGIC)
-	goto bad;
-
-// load each program segment (ignores ph flags)
-ph = (struct Proghdr *) ((uint8_t *) ELFHDR + ELFHDR->e_phoff);
-eph = ph + ELFHDR->e_phnum;
-for (; ph < eph; ph++)
-	// p_pa is the load address of this segment (as well
-	// as the physical address)
-	readseg(ph->p_pa, ph->p_memsz, ph->p_offset);
-
-// call the entry point from the ELF header
-// note: does not return!
-((void (*)(void)) (ELFHDR->e_entry))();
+Here comes the last part of `bootmain`.
 ```
+=> 0x7d23:	cmp    DWORD PTR ds:0x10000,0x464c457f ; check if the kernel is a valid ELF
+=> 0x7d2d:	jne    0x7d67 ; if not, jump to bad
+=> 0x7d2f:	mov    eax,ds:0x1001c ; mov e_phoff to eax
+=> 0x7d34:	lea    ebx,[eax+0x10000] ; mov the start of the program header table to ebx = 0x10034
+=> 0x7d3a:	movzx  eax,WORD PTR ds:0x1002c ; mov e_phnum to eax = 0x03
+=> 0x7d41:	shl    eax,0x5 ; multiply 0x20 = 0x60
+=> 0x7d44:	lea    esi,[ebx+eax*1] ; 0x10094
+=> 0x7d47:	cmp    ebx,esi ; start of program header table vs
+=> 0x7d49:	jae    0x7d61
+=> 0x7d4b:	push   DWORD PTR [ebx+0x4]
+=> 0x7d4e:	add    ebx,0x20
+=> 0x7d51:	push   DWORD PTR [ebx-0xc]
+```
+The ELF file starts with `.ELF`, which is `0x7f 0x45 0x4c 0x46` in hex, [check all about ELF format  here](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format#File_header).
+
+The e_phoff :`Points to the start of the program header table. It usually follows the file header immediately, making the offset 0x34 or 0x40 for 32- and 64-bit ELF executables, respectively.`
+
+The e_phnum : `Contains the number of entries in the program header table.`
 
 
 ---
