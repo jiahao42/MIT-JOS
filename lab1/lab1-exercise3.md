@@ -316,11 +316,11 @@ while (ecx != 0) {
 Now that the `ecx` is `0x80` first, the we can explain why it executes 128 times.
 About the `ins` instruction, check [here](https://docs.oracle.com/cd/E19455-01/806-3773/6jct9o0aj/index.html).
 ```plain
-ins instruction. 
+ins instruction.
 After a transfer occurs, the destination-index register is automatically incremented or decremented as determined by the value of the direction flag (DF).
-The index register is incremented if DF = 0 (DF cleared by a cld instruction); 
-it is decremented if DF = 1 (DF set by a std instruction). 
-The increment or decrement count is 1 for a byte transfer, 2 for a word, and 4 for a long. 
+The index register is incremented if DF = 0 (DF cleared by a cld instruction);
+it is decremented if DF = 1 (DF set by a std instruction).
+The increment or decrement count is 1 for a byte transfer, 2 for a word, and 4 for a long.
 Use the rep prefix with the ins instruction for a block transfer of CX bytes or words.
 ```
 It transfers a string from the port `0x1f7`, which is the port of drive, to certain memory which is determined by `es:[edi]`. Since the `ecx` decreases 1 at a time, we can learn that it reads 4 bytes at a time. And the data will be transfered to the memory that starts with `es:0x10000`.
@@ -328,7 +328,7 @@ We can verify it before and after these instructions. When the instruction has n
 
 
 Now the programe will try to recover the stack in the caller function `readseg`:
-```
+```plain
 +------------------+  <-
 |                  |
 +------------------+  <- ebp-0x8 = 0x7bb8 : ebx = 0x10200
@@ -370,7 +370,7 @@ Then the instructions are:
 ```
 
 And then the stack is exactly recovered:
-```
+```plain
 +------------------+  <- ebp-0xc = 0x7bd0 : value of ebx = 0
 |    0x00000000    |
 +------------------+  <- ebp-0x8 = 0x7bd4 : value of esi = 0
@@ -387,7 +387,7 @@ And then the stack is exactly recovered:
 ```
 
 Then it executes this code again:
-```
+```assembly
 => 0x7cec:	cmp    ebx,edi ; while (pa < end_pa)
 => 0x7cee:	jae    0x7d02 ; if pa is greater, break
 => 0x7cf0:	push   esi ; push parameter2, offset = 0x1
@@ -395,10 +395,56 @@ Then it executes this code again:
 => 0x7cf2:	push   ebx ; push parameter1, pa = 0x10200
 => 0x7cf3:	add    ebx,0x200 ; pa += 0x200
 ```
-To sum up, we can see what the `main.c` is doing, read `count(0x1000)`
+To sum up, we can see what the code above is doing, read `count(0x1000)`
  bytes from kernel to memory starts from `pa(physical address : 0x10000)` to `end_pa(end of physical address : 0x11000)`, and the `offset` represents the number of sector that the program is going to read.
 
  After reading 10 times from the disk, the kernel is now read completely, and the following instructions are executed.
+```assembly
+=> 0x7cec:	cmp    ebx,edi ; 0x11000 = 0x11000
+=> 0x7cee:	jae    0x7d02 ; jump to end of readseg
+=> 0x7d02:	lea    esp,[ebp-0xc] ; it seems trivial with the [add esp, 0xc], because it can just [mov esp, ebp] at last.
+=> 0x7d05:	pop    ebx ; 0x0
+=> 0x7d06:	pop    esi ; 0x0
+=> 0x7d07:	pop    edi ; 0x0
+=> 0x7d08:	pop    ebp ; 0x7df8
+=> 0x7d09:	ret ; jump to 0x7d20
+=> 0x7d20:	add    esp,0xc ; make esp = ebp
+```
+```plain
++------------------+  <- ebp-0xc = 0x7bd0 : value of ebx = 0
+|    0x00000000    |
++------------------+  <- ebp-0x8 = 0x7bd4 : value of esi = 0
+|    0x00000000    |
++------------------+  <- ebp-0x4 = 0x7bd8 : value of edi = 0
+|    0x00000000    |
++------------------+  <- ebp = 0x7bdc : ebp of bootmain
+|    0x00007df8    |
++------------------+  <- 0x7be0 : return address
+|    0x00007d20    |
++------------------+  <- 0x7be4 : former esp
+| stack of bootmain|
++------------------+  <- 0x7c00
+```
+
+The I choose to see the C code:
+```C
+// is this a valid ELF?
+if (ELFHDR->e_magic != ELF_MAGIC)
+	goto bad;
+
+// load each program segment (ignores ph flags)
+ph = (struct Proghdr *) ((uint8_t *) ELFHDR + ELFHDR->e_phoff);
+eph = ph + ELFHDR->e_phnum;
+for (; ph < eph; ph++)
+	// p_pa is the load address of this segment (as well
+	// as the physical address)
+	readseg(ph->p_pa, ph->p_memsz, ph->p_offset);
+
+// call the entry point from the ELF header
+// note: does not return!
+((void (*)(void)) (ELFHDR->e_entry))();
+```
+
 
 ---
 At last, we need to answer these four questions, after all the content above, I think these will be easy for us.
