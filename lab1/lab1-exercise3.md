@@ -435,8 +435,8 @@ Here comes the last part of `bootmain`.
 => 0x7d3a:	movzx  eax,WORD PTR ds:0x1002c ; mov e_phnum to eax = 0x03
 => 0x7d41:	shl    eax,0x5 ; multiply 0x20 = 0x60
 => 0x7d44:	lea    esi,[ebx+eax*1] ; 0x10094
-=> 0x7d47:	cmp    ebx,esi ; start of program header table vs
-=> 0x7d49:	jae    0x7d61
+=> 0x7d47:	cmp    ebx,esi ; 0x10034 vs 0x10094
+=> 0x7d49:	jae    0x7d61 ; break
 => 0x7d4b:	push   DWORD PTR [ebx+0x4]
 => 0x7d4e:	add    ebx,0x20
 => 0x7d51:	push   DWORD PTR [ebx-0xc]
