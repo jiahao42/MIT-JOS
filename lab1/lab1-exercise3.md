@@ -393,26 +393,19 @@ Then it executes this code again:
 To sum up, we can see what the `main.c` is doing, read `count(0x1000)`
  bytes from kernel to memory starts from `pa(physical address : 0x10000)` to `end_pa(end of physical address : 0x11000)`, and the `offset` represents the number of sector that the program is going to read.
 
-
-### Another way to see it
-`cat kernel.img | xxd | head -n 32`
-
+ After reading 10 times from the disk, the kernel is now read completely, and the following instructions are executed.
 
 ---
-
-* In gdb, after push the 3 parameters, it will call readseg() at 0x7d1b
-    * pushing 0x0(at 0x7d0f), 0x1000(at 0x7d11) and 0x10000(at 0x7d16) in a sequence means push the parameters of readseg() onto stack
-    * ```push ebp && mov ebp esp``` means to start a new frame
-
+At last, we need to answer these four questions, after all the content above, I think these will be easy for us.
 
 * At what point does the processor start executing 32-bit code? What exactly causes the switch from 16- to 32-bit mode?
 
-    * after a jmp or ljmp
-    * jmp 0x8:0xfd157
+After loading the `Global Descriptor Table Register`, and set the bit0 of `cr0` to 1([check here](http://wiki.osdev.org/CPU_Registers_x86#CR0)), then jump to a 32-bit address using pattern like `address : address`.
+
 
 * What is the *last* instruction of the boot loader executed, and what is the first instruction of the kernel it just loaded?
-    * The repnz instruction read 4 bytes at a time from port 0x1f0, the first 4 bytes it reads are the magic number of ELF header, which is ```0x7f 0x45 0x4c 0x46```, and ```0x45 0x4c 0x46``` means *ELF*
-    * Actually, you can read the kernel like this: ```cat kernel.img | xxd | head 10```, then you can see the first 16*10 bytes of the kernel
+
+
 
 
 * *Where* is the first instruction of the kernel?
