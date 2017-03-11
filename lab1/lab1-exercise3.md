@@ -162,7 +162,7 @@ we can see `move $0x7c00, $esp` and `jmp 7c4a` here.
 => 0x7cf1:	inc    esi ; offset++ -> offset = 2
 => 0x7cf2:	push   ebx ; push 0x10000
 => 0x7cf3:	add    ebx,0x200 ; pa += 512 = 0x10200
-=> 0x7cf9:	call   0x7c7c ; call readseg
+=> 0x7cf9:	call   0x7c7c ; call readsect
 ```
 
 Now the stack looks like this:
@@ -390,6 +390,8 @@ Then it executes this code again:
 => 0x7cf2:	push   ebx ; push parameter1, pa = 0x10200
 => 0x7cf3:	add    ebx,0x200 ; pa += 0x200
 ```
+To sum up, we can see what the `main.c` is doing, read `count(0x1000)`
+ bytes from kernel to memory starts from `pa(physical address : 0x10000)` to `end_pa(end of physical address : 0x11000)`, and the `offset` represents the number of sector that the program is going to read.
 
 
 ### Another way to see it
