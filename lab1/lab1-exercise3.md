@@ -228,7 +228,7 @@ Now, we are going to trace the `waitdisk` function.
 => 0x7c78:	jne    0x7c72 ; if the drive is not ready, keep reading from it until it is ready
 ```
 Check what the bit6 of port 0x1f7 can do :
-```
+```plain
 01F7	r	status register
 		 bit 7 = 1  controller is executing a command
 		 bit 6 = 1  drive is ready
@@ -299,7 +299,7 @@ The last several instructions are very important:
 The most important instruction above is `repnz ins DWORD PTR es:[edi],dx`, it executes 128 times, what exactly does it do?
 Check [here](http://stackoverflow.com/questions/26783797/repnz-scas-assembly-instruction-specifics) to understand the prefix `repnz`, it mainly do this:
 
-```c
+```
 while (ecx != 0) {
     temp = al - *(BYTE *)edi;
     SetStatusFlags(temp);
@@ -310,7 +310,6 @@ while (ecx != 0) {
     ecx = ecx - 1;
     if (ZF == 1) break;
 }
-
 ```
 
 
@@ -321,6 +320,76 @@ ins instruction. After a transfer occurs, the destination-index register is auto
 ```
 It transfers a string from the port `0x1f7`, which is the port of drive, to certain memory which is determined by `es:[edi]`. Since the `ecx` decreases 1 at a time, we can learn that it reads 4 bytes at a time. And the data will be transfered to the memory that starts with `es:0x10000`.
 We can verify it before and after these instructions. When the instruction has not executed, the value at `0x10000-0x10004` is `0x00000000`, however, after executing the instruction once, the memory will be changed to `0x7f 0x45 0x4c 0x46`, which is `.ELF` in ASCII, also is the magic number of [ELF header](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format#File_header). We should be aware that the kernel image is an ELF file.
+
+
+Now the programe will try to recover the stack in the caller function `readseg`:
+```
++------------------+  <-
+|                  |
++------------------+  <- ebp-0x8 = 0x7bb8 : ebx = 0x10200
+|    0x00010200    |
++------------------+  <- ebp-0x4= 0x7bbc : edi = 0x11000
+|    0x00011000    |
++------------------+  <- ebp=0x7bc0 : former ebp
+|    0x00007bdc    |
++------------------+  <- 0x7bc4 : return address
+|    0x00007cfe    |
++------------------+  <- 0x7bc8 : former esp
++------------------+  <- ebp-0x14 = 0x7bc8 : pa = 0x10000
+|    0x00010000    |
++------------------+  <- ebp-0x10 = 0x7bcc : offset = 1
+|    0x00000001    |
++------------------+  <- ebp-0xc = 0x7bd0 : value of ebx = 0
+|    0x00000000    |
++------------------+  <- ebp-0x8 = 0x7bd4 : value of esi = 0
+|    0x00000000    |
++------------------+  <- ebp-0x4 = 0x7bd8 : value of edi = 0
+|    0x00000000    |
++------------------+  <- ebp = 0x7bdc : ebp of bootmain
+|    0x00007df8    |
++------------------+  <- 0x7be0 : return address
+|    0x00007d20    |
++------------------+  <- 0x7be4 : former esp
+| stack of bootmain|
++------------------+  <- 0x7c00
+```
+Then the instructions are:
+```assembly
+=> 0x7ccd:	pop    ebx ; 0x10200
+=> 0x7cce:	pop    edi ; 0x11000
+=> 0x7ccf:	pop    ebp ; 0x7bdc
+=> 0x7cd0:	ret    ; return 0x7cfe
+=> 0x7cfe:	pop    eax ; 0x10000
+=> 0x7cff:	pop    edx ; 0x01
+=> 0x7d00:	jmp    0x7cec ; while (pa < end_pa)
+```
+
+And then the stack is exactly recovered:
+```
++------------------+  <- ebp-0xc = 0x7bd0 : value of ebx = 0
+|    0x00000000    |
++------------------+  <- ebp-0x8 = 0x7bd4 : value of esi = 0
+|    0x00000000    |
++------------------+  <- ebp-0x4 = 0x7bd8 : value of edi = 0
+|    0x00000000    |
++------------------+  <- ebp = 0x7bdc : ebp of bootmain
+|    0x00007df8    |
++------------------+  <- 0x7be0 : return address
+|    0x00007d20    |
++------------------+  <- 0x7be4 : former esp
+| stack of bootmain|
++------------------+  <- 0x7c00
+```
+
+Then it executes this code again:
+```
+=> 0x7cec:	cmp    ebx,edi ; while (pa < end_pa)
+=> 0x7cee:	jae    0x7d02 ; if pa is greater, break
+=> 0x7cf0:	push   esi ; push parameter2, offset = 0x1
+=> 0x7cf1:	inc    esi ; offset++
+=> 0x7cf2:	push   ebx ; push parameter1, pa = 0x10200
+=> 0x7cf3:	add    ebx,0x200 ; pa += 0x200
+```
 
 
 ### Another way to see it
