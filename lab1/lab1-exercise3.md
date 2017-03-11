@@ -1,10 +1,10 @@
 ## Exercise 3
->Take a look at the lab tools guide, especially the section on GDB commands. Even if you're familiar with GDB, this includes some esoteric GDB commands that are useful for OS work.
+>1. Take a look at the lab tools guide, especially the section on GDB commands. Even if you're familiar with GDB, this includes some esoteric GDB commands that are useful for OS work.
 <!-- more -->
 
->Set a breakpoint at address 0x7c00, which is where the boot sector will be loaded. Continue execution until that breakpoint. Trace through the code in boot/boot.S, using the source code and the disassembly file obj/boot/boot.asm to keep track of where you are. Also use the x/i command in GDB to disassemble sequences of instructions in the boot loader, and compare the original boot loader source code with both the disassembly in obj/boot/boot.asm and GDB.
+>2. Set a breakpoint at address 0x7c00, which is where the boot sector will be loaded. Continue execution until that breakpoint. Trace through the code in boot/boot.S, using the source code and the disassembly file obj/boot/boot.asm to keep track of where you are. Also use the x/i command in GDB to disassemble sequences of instructions in the boot loader, and compare the original boot loader source code with both the disassembly in obj/boot/boot.asm and GDB.
 
->Trace into bootmain() in boot/main.c, and then into readsect(). Identify the exact assembly instructions that correspond to each of the statements in readsect(). Trace through the rest of readsect() and back out into bootmain(), and identify the begin and end of the for loop that reads the remaining sectors of the kernel from the disk. Find out what code will run when the loop is finished, set a breakpoint there, and continue to that breakpoint. Then step through the remainder of the boot loader. **
+>3. Trace into bootmain() in boot/main.c, and then into readsect(). Identify the exact assembly instructions that correspond to each of the statements in readsect(). Trace through the rest of readsect() and back out into bootmain(), and identify the begin and end of the for loop that reads the remaining sectors of the kernel from the disk. Find out what code will run when the loop is finished, set a breakpoint there, and continue to that breakpoint. Then step through the remainder of the boot loader. **
 
 ### All about boot.S
 Ok, now we are going to trace the boot sector, using gdb as usual. After attaching gdb to qemu, input `b *0x7c00` to set breakpoint at 0x7c00, where the boot sector will be loaded.
@@ -71,7 +71,7 @@ This is one problem that I haven't figured out yet, the `0xdf` is send to port `
 [   0:7c1e] => 0x7c1e:	lgdtw  ds:0x7c64 ;load Global Descriptor Table Register
 [   0:7c23] => 0x7c23:	mov    eax,cr0
 [   0:7c26] => 0x7c26:	or     eax,0x1
-[   0:7c2a] => 0x7c2a:	mov    cr0,eax ; set bit0 so it can change to protected mode check [here](http://wiki.osdev.org/CPU_Registers_x86#CR0)
+[   0:7c2a] => 0x7c2a:	mov    cr0,eax ; set bit0 so it can change to protected mode
 [   0:7c2d] => 0x7c2d:	jmp    0x8:0x7c32 ;jump to 32-bit code segment
 => 0x7c32:	mov    ax,0x10 ; ax =  0x10 = kernel data segment selector
 => 0x7c36:	mov    ds,eax  ; ds = 0x10
@@ -316,10 +316,15 @@ while (ecx != 0) {
 Now that the `ecx` is `0x80` first, the we can explain why it executes 128 times.
 About the `ins` instruction, check [here](https://docs.oracle.com/cd/E19455-01/806-3773/6jct9o0aj/index.html).
 ```plain
-ins instruction. After a transfer occurs, the destination-index register is automatically incremented or decremented as determined by the value of the direction flag (DF). The index register is incremented if DF = 0 (DF cleared by a cld instruction); it is decremented if DF = 1 (DF set by a std instruction). The increment or decrement count is 1 for a byte transfer, 2 for a word, and 4 for a long. Use the rep prefix with the ins instruction for a block transfer of CX bytes or words.
+ins instruction. 
+After a transfer occurs, the destination-index register is automatically incremented or decremented as determined by the value of the direction flag (DF).
+The index register is incremented if DF = 0 (DF cleared by a cld instruction); 
+it is decremented if DF = 1 (DF set by a std instruction). 
+The increment or decrement count is 1 for a byte transfer, 2 for a word, and 4 for a long. 
+Use the rep prefix with the ins instruction for a block transfer of CX bytes or words.
 ```
 It transfers a string from the port `0x1f7`, which is the port of drive, to certain memory which is determined by `es:[edi]`. Since the `ecx` decreases 1 at a time, we can learn that it reads 4 bytes at a time. And the data will be transfered to the memory that starts with `es:0x10000`.
-We can verify it before and after these instructions. When the instruction has not executed, the value at `0x10000-0x10004` is `0x00000000`, however, after executing the instruction once, the memory will be changed to `0x7f 0x45 0x4c 0x46`, which is `.ELF` in ASCII, also is the magic number of [ELF header](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format#File_header). We should be aware that the kernel image is an ELF file.
+We can verify it before and after these instructions. When the instruction has not executed, the value at `0x10000-0x10004` is `0x00 00 00 00`, however, after executing the instruction once, the memory will be changed to `0x7f 0x45 0x4c 0x46`, which is `.ELF` in ASCII, also is the magic number of [ELF header](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format#File_header). We should be aware that the kernel image is an ELF file.
 
 
 Now the programe will try to recover the stack in the caller function `readseg`:
