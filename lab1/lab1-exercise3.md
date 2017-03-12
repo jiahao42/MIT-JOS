@@ -402,13 +402,13 @@ To sum up, we can see what the code above is doing, read `count(0x1000)`
 ```assembly
 => 0x7cec:	cmp    ebx,edi ; 0x11000 = 0x11000
 => 0x7cee:	jae    0x7d02 ; jump to end of readseg
-=> 0x7d02:	lea    esp,[ebp-0xc] ; it seems trivial with the [add esp, 0xc], because it can just [mov esp, ebp] at last.
+=> 0x7d02:	lea    esp,[ebp-0xc] ; make esp = ebp
 => 0x7d05:	pop    ebx ; 0x0
 => 0x7d06:	pop    esi ; 0x0
 => 0x7d07:	pop    edi ; 0x0
 => 0x7d08:	pop    ebp ; 0x7df8
 => 0x7d09:	ret ; jump to 0x7d20
-=> 0x7d20:	add    esp,0xc ; make esp = ebp
+=> 0x7d20:	add    esp,0xc ; balance the stack, skip the 3 parameters of `readseg`
 ```
 Before these instructions, the stack looks like this:
 ```plain
@@ -426,17 +426,9 @@ Before these instructions, the stack looks like this:
 | stack of bootmain|
 +------------------+  <- 0x7c00
 ```
-After these instructions, the stack will be changed to the `bootmain`:
+After these instructions, the stack will be changed to the stack of `bootmain`:
 ```plain
-          +------------------+  <-
-          |                  |
-          +------------------+  <- esp = ebp-0x14 = 0x7be4 : parameter11 of readseg
-          |    0x00010000    |
-          +------------------+  <- ebp-0x10 = 0x7be8 : parameter2 of readseg
-          |    0x00001000    |
-          +------------------+  <- ebp-0xc = 0x7bec : parameter3 of readseg
-          |    0x00000000    |
-          +------------------+  <- ebp-0x8 = 0x7bf0 : value of ebx
+          +------------------+  <- esp=ebp-0x8 = 0x7bf0 : value of ebx
           |    0x00000000    |
           +------------------+  <- ebp-0x4 = 0x7bf4 : value of esi
           |    0x00000000    |
