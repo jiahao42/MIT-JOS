@@ -1,14 +1,7 @@
-## Exercise 1
-> Exercise 1. Familiarize yourself with the assembly language materials available on the 6.828 reference page. You don't have to read them now, but you'll almost certainly want to refer to some of this material when reading and writing x86 assembly.
-<!-- more -->
-
-> We do recommend reading the section "The Syntax" in Brennan's Guide to Inline Assembly. It gives a good (and quite brief) description of the AT&T assembly syntax we'll be using with the GNU assembler in JOS.
-
-
----
-
 ## Exercise 2
 > Use GDB's si (Step Instruction) command to trace into the ROM BIOS for a few more instructions, and try to guess what it might be doing. You might want to look at Phil Storrs I/O Ports Description, as well as other materials on the 6.828 reference materials page. No need to figure out all the details - just the general idea of what the BIOS is doing first.
+
+<!-- more -->
 
 First of all, I would like to add this line in `~/.gdbinit` :
 `set disassembly-flavor intel`, this can make gdb use the Intel style assembly

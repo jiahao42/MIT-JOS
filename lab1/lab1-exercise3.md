@@ -9,23 +9,21 @@
 ### All about boot.S
 Ok, now we are going to trace the boot sector, using gdb as usual. After attaching gdb to qemu, input `b *0x7c00` to set breakpoint at 0x7c00, where the boot sector will be loaded.
 
-<pre>
+```assembly
 [   0:7c00] => 0x7c00:	cli ;disable interrupt
 [   0:7c01] => 0x7c01:	cld ;clear direction flag
 [   0:7c02] => 0x7c02:	xor    ax,ax ;clear ax
 [   0:7c04] => 0x7c04:	mov    ds,ax ;clear ds
 [   0:7c06] => 0x7c06:	mov    es,ax ;clear es
 [   0:7c08] => 0x7c08:	mov    ss,ax ;clear ss
-</pre>
+```
+First, just like we talked about before in Exercise1&&2, these are the preparation instructions. You can see the usage of them according to the comment.
 
-First, just like we talked about before in Exercise2, these are the preparation instructions. You can see the usage of them according to the comment.
-
-<pre>
+```assembly
 [   0:7c0a] => 0x7c0a:	in     al,0x64
 [   0:7c0c] => 0x7c0c:	test   al,0x2
 [   0:7c0e] => 0x7c0e:	jne    0x7c0a
-</pre>
-
+```
 We can see according to the code above that these three instructions form a loop, it keeps checking the bit1 of the port 0x64, if this bit is not 1, then breaks. These instructions are used to guarantee this instructions executed before are fetched by CPU.
 check [here](http://bochs.sourceforge.net/techspec/PORTS.LST) to see how the port 0x64 works.
 
@@ -44,14 +42,13 @@ check [here](http://bochs.sourceforge.net/techspec/PORTS.LST) to see how the por
 ```
 Evidently, this loop is trying to see whether the input buffer is full, if not, then breaks the loop.
 
-<pre>
+```assembly
 [   0:7c10] => 0x7c10:	mov    al,0xd1
 [   0:7c12] => 0x7c12:	out    0x64,al
 [   0:7c14] => 0x7c14:	in     al,0x64
 [   0:7c16] => 0x7c16:	test   al,0x2
 [   0:7c18] => 0x7c18:	jne    0x7c14
-</pre>
-
+```
 Now the boot sector want to write 0xd1 to port 0x64, check [here](http://bochs.sourceforge.net/techspec/PORTS.LST) again, we can see things below:
 ```plain
 D1	dbl   write output port. next byte written  to 0060
@@ -61,16 +58,16 @@ D1	dbl   write output port. next byte written  to 0060
 ```
 Also, the last 3 instructions above which are also a loop is trying to see if the instructions before are fetched by CPU.
 
-<pre>
+```assembly
 [   0:7c1a] => 0x7c1a:	mov    al,0xdf
 [   0:7c1c] => 0x7c1c:	out    0x60,al
-</pre>
+```
 This is one problem that I haven't figured out yet, the `0xdf` is send to port `0x60`, but I think it is actually sent to port `0x64`, I don't know how it works.
 ```plain
 0064	w  DF	sngl  enable address line A20 (HP Vectra only???)
 ```
 
-<pre>
+```assembly
 [   0:7c1e] => 0x7c1e:	lgdtw  ds:0x7c64 ;load Global Descriptor Table Register
 [   0:7c23] => 0x7c23:	mov    eax,cr0
 [   0:7c26] => 0x7c26:	or     eax,0x1
@@ -84,12 +81,12 @@ This is one problem that I haven't figured out yet, the `0xdf` is send to port `
 => 0x7c3e:	mov    ss,eax  ; ss = 0x10
 => 0x7c40:	mov    esp,0x7c00 ; use 0x7c00 as the stack top, so the stack won't grow until cover the boot sector
 => 0x7c45:	call   0x7d0a  ; jump to bootmain C function
-</pre>
+```
 
 ### All about main.c
 While trace the main.c, I will draw the `stack` for you.
 
-<pre>
+```assembly
 => 0x7d0a:	push   ebp
 => 0x7d0b:	mov    ebp,esp ; create new frame of bootmain
 => 0x7d0d:	push   esi
@@ -97,8 +94,7 @@ While trace the main.c, I will draw the `stack` for you.
 => 0x7d0f:	push   0x0 ; push parameter3 of the readseg
 => 0x7d11:	push   0x1000 ; push parameter2 of the readseg
 => 0x7d16:	push   0x10000 ; push parameter1 of the readseg
-</pre>
-
+```
 At first, we should know something about how the stack works when calling functions. Look at the picture below:
 ![](http://images.cnitblog.com/i/569008/201405/271644419475745.jpg)
 We should now that the sequence of pushing data. First, if the function has parameters, push them from right to left, then push the `eip`, which is the return address of the caller function, and then it executes the normal `push ebp` and `mov ebp, esp`, and finally, then local variables.
@@ -128,9 +124,8 @@ Until now, the stack should be like this:
           +------------------+  <- 0x00000000
 
 ```
-
 We can see the return address `0x00007c4a` and the original `esp` `0x7c00` in `boot.asm`:
-<pre>
+```plain
 # Set up the stack pointer and call into C.
 movl    $start, %esp
   7c40:	bc 00 7c 00 00       	mov    $0x7c00,%esp
@@ -143,11 +138,11 @@ call bootmain
 spin:
 jmp spin
   7c4a:	eb fe                	jmp    7c4a <spin>
-</pre>
+```
 we can see `move $0x7c00, $esp` and `jmp 7c4a` here.
 
 
-<pre>
+```assembly
 => 0x7d1b:	call   0x7cd1 ; jump to readseg
 => 0x7cd1:	push   ebp
 => 0x7cd2:	mov    ebp,esp ; create new frame of readseg
@@ -168,7 +163,7 @@ we can see `move $0x7c00, $esp` and `jmp 7c4a` here.
 => 0x7cf2:	push   ebx ; push 0x10000
 => 0x7cf3:	add    ebx,0x200 ; pa += 512 = 0x10200
 => 0x7cf9:	call   0x7c7c ; call readsect
-</pre>
+```
 
 Now the stack looks like this:
 ```plain
@@ -194,17 +189,15 @@ Now the stack looks like this:
 ```
 
 The next instructions:
-<pre>
+```assembly
 => 0x7cf9:	call   0x7c7c
 => 0x7c7c:	push   ebp
 => 0x7c7d:	mov    ebp,esp
 => 0x7c7f:	push   edi ; 0x11000
 => 0x7c80:	push   ebx ; 0x10200
 => 0x7c81:	mov    ebx,DWORD PTR [ebp+0xc] ; [0x7bcc] = offset = 1
-</pre>
-
+```
 Now the stack is :
-
 ```plain
 +------------------+  <-
 |                  |
@@ -224,7 +217,7 @@ Now the stack is :
 ```
 
 Now, we are going to trace the `waitdisk` function.
-<pre>
+```assembly
 => 0x7c84:	call   0x7c6a ; call waitdisk()
 => 0x7c6a:	push   ebp
 => 0x7c6b:	mov    edx,0x1f7 ; the port
@@ -233,10 +226,8 @@ Now, we are going to trace the `waitdisk` function.
 => 0x7c73:	and    eax,0xffffffc0
 => 0x7c76:	cmp    al,0x40
 => 0x7c78:	jne    0x7c72 ; if the drive is not ready, keep reading from it until it is ready
-</pre>
-
+```
 Check what the bit6 of port 0x1f7 can do :
-
 ```plain
 01F7	r	status register
 		 bit 7 = 1  controller is executing a command
@@ -248,7 +239,6 @@ Check what the bit6 of port 0x1f7 can do :
 		 bit 1 = 1  index - set to 1 each disk revolution
 		 bit 0 = 1  previous command ended in an error
 ```
-
 And the stack just changes a little:
 
 ```plain
@@ -266,14 +256,11 @@ And the stack just changes a little:
 ```
 
 And after executing the last two instructions of `waitdisk`:
-
-<pre>
+```assembly
 => 0x7c7a:	pop    ebp
 => 0x7c7b:	ret
-</pre>
-
+```
 The stack changes back:
-
 ```plain
 +------------------+  <- 0x7bb8 : former esp
 | stack of readsect|
@@ -285,7 +272,7 @@ The stack changes back:
 ```
 
 And then, it will execute the following C code, and because it is not special at all, I won't draw the stack for these code.
-<pre>
+```C
 outb(0x1F2, 1);		// count = 1
 outb(0x1F3, offset);
 outb(0x1F4, offset >> 8);
@@ -295,10 +282,10 @@ outb(0x1F7, 0x20);	// cmd 0x20 - read sectors
 
 // wait for disk to be ready
 waitdisk();
-</pre>
+```
 
 The last several instructions are very important:
-<pre>
+```assembly
 => 0x7cbd:	mov    edi,DWORD PTR [ebp+0x8] ; [0x7bc0+0x8] = 0x10000
 => 0x7cc0:	mov    ecx,0x80 ; SECTSIZE / 4 = 0x80
 => 0x7cc5:	mov    edx,0x1f0 ; port
@@ -308,11 +295,11 @@ The last several instructions are very important:
 => 0x7cce:	pop    edi
 => 0x7ccf:	pop    ebp
 => 0x7cd0:	ret
-</pre>
+```
 The most important instruction above is `repnz ins DWORD PTR es:[edi],dx`, it executes 128 times, what exactly does it do?
 Check [here](http://stackoverflow.com/questions/26783797/repnz-scas-assembly-instruction-specifics) to understand the prefix `repnz`, it mainly do this:
 
-<pre>
+```
 while (ecx != 0) {
     temp = al - *(BYTE *)edi;
     SetStatusFlags(temp);
@@ -323,7 +310,7 @@ while (ecx != 0) {
     ecx = ecx - 1;
     if (ZF == 1) break;
 }
-</pre>
+```
 
 
 Now that the `ecx` is `0x80` first, the we can explain why it executes 128 times.
@@ -341,7 +328,6 @@ We can verify it before and after these instructions. When the instruction has n
 
 
 Now the programe will try to recover the stack in the caller function `readseg`:
-
 ```plain
 +------------------+  <-
 |                  |
@@ -372,9 +358,8 @@ Now the programe will try to recover the stack in the caller function `readseg`:
 | stack of bootmain|
 +------------------+  <- 0x7c00
 ```
-
 Then the instructions are:
-<pre>
+```assembly
 => 0x7ccd:	pop    ebx ; 0x10200
 => 0x7cce:	pop    edi ; 0x11000
 => 0x7ccf:	pop    ebp ; 0x7bdc
@@ -382,10 +367,9 @@ Then the instructions are:
 => 0x7cfe:	pop    eax ; 0x10000
 => 0x7cff:	pop    edx ; 0x01
 => 0x7d00:	jmp    0x7cec ; while (pa < end_pa)
-</pre>
+```
 
 And then the stack is exactly recovered:
-
 ```plain
 +------------------+  <- ebp-0xc = 0x7bd0 : value of ebx = 0
 |    0x00000000    |
@@ -403,19 +387,19 @@ And then the stack is exactly recovered:
 ```
 
 Then it executes this code again:
-<pre>
+```assembly
 => 0x7cec:	cmp    ebx,edi ; while (pa < end_pa)
 => 0x7cee:	jae    0x7d02 ; if pa is greater, break
 => 0x7cf0:	push   esi ; push parameter2, offset = 0x1
 => 0x7cf1:	inc    esi ; offset++
 => 0x7cf2:	push   ebx ; push parameter1, pa = 0x10200
 => 0x7cf3:	add    ebx,0x200 ; pa += 0x200
-</pre>
+```
 To sum up, we can see what the code above is doing, read `count(0x1000)`
  bytes from kernel to memory starts from `pa(physical address : 0x10000)` to `end_pa(end of physical address : 0x11000)`, and the `offset` represents the number of sector that the program is going to read.
 
  After reading 10 times from the disk, the kernel is now read completely, and the following instructions are executed.
-<pre>
+```assembly
 => 0x7cec:	cmp    ebx,edi ; 0x11000 = 0x11000
 => 0x7cee:	jae    0x7d02 ; jump to end of readseg
 => 0x7d02:	lea    esp,[ebp-0xc] ; it seems trivial with the [add esp, 0xc], because it can just [mov esp, ebp] at last.
@@ -425,8 +409,8 @@ To sum up, we can see what the code above is doing, read `count(0x1000)`
 => 0x7d08:	pop    ebp ; 0x7df8
 => 0x7d09:	ret ; jump to 0x7d20
 => 0x7d20:	add    esp,0xc ; make esp = ebp
-</pre>
-
+```
+Before these instructions, the stack looks like this:
 ```plain
 +------------------+  <- ebp-0xc = 0x7bd0 : value of ebx = 0
 |    0x00000000    |
@@ -442,9 +426,34 @@ To sum up, we can see what the code above is doing, read `count(0x1000)`
 | stack of bootmain|
 +------------------+  <- 0x7c00
 ```
+After these instructions, the stack will be changed to the `bootmain`:
+```plain
+          +------------------+  <-
+          |                  |
+          +------------------+  <- esp = ebp-0x14 = 0x7be4 : parameter11 of readseg
+          |    0x00010000    |
+          +------------------+  <- ebp-0x10 = 0x7be8 : parameter2 of readseg
+          |    0x00001000    |
+          +------------------+  <- ebp-0xc = 0x7bec : parameter3 of readseg
+          |    0x00000000    |
+          +------------------+  <- ebp-0x8 = 0x7bf0 : value of ebx
+          |    0x00000000    |
+          +------------------+  <- ebp-0x4 = 0x7bf4 : value of esi
+          |    0x00000000    |
+          +------------------+  <- ebp = 0x7bf8 : ebp of former function
+          |    0x00000000    |
+          +------------------+  <- 0x7bfc : ret address
+          |    0x00007c4a    |
+          +------------------+  <- 0x7c00 : original esp
+          |     boot.S       |
+          +------------------+  <-
+          |                  |
+          +------------------+  <- 0x00000000
+
+```
 
 Here comes the last part of `bootmain`.
-<pre>
+```
 => 0x7d23:	cmp    DWORD PTR ds:0x10000,0x464c457f ; check if the kernel is a valid ELF
 => 0x7d2d:	jne    0x7d67 ; if not, jump to bad
 => 0x7d2f:	mov    eax,ds:0x1001c ; mov e_phoff to eax
@@ -457,12 +466,13 @@ Here comes the last part of `bootmain`.
 => 0x7d4b:	push   DWORD PTR [ebx+0x4]
 => 0x7d4e:	add    ebx,0x20
 => 0x7d51:	push   DWORD PTR [ebx-0xc]
-</pre>
+```
 The ELF file starts with `.ELF`, which is `0x7f 0x45 0x4c 0x46` in hex, [check all about ELF format  here](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format#File_header).
 
 The e_phoff :`Points to the start of the program header table. It usually follows the file header immediately, making the offset 0x34 or 0x40 for 32- and 64-bit ELF executables, respectively.`
 
 The e_phnum : `Contains the number of entries in the program header table.`
+
 
 
 ---
@@ -483,5 +493,3 @@ After loading the `Global Descriptor Table Register`, and set the bit0 of `cr0` 
 
 
 * How does the boot loader decide how many sectors it must read in order to fetch the entire kernel from disk? Where does it find this information?
-
-
