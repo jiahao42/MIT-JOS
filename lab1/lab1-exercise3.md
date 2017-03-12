@@ -449,15 +449,17 @@ Here comes the last part of `bootmain`.
 => 0x7d23:	cmp    DWORD PTR ds:0x10000,0x464c457f ; check if the kernel is a valid ELF
 => 0x7d2d:	jne    0x7d67 ; if not, jump to bad
 => 0x7d2f:	mov    eax,ds:0x1001c ; mov e_phoff to eax
-=> 0x7d34:	lea    ebx,[eax+0x10000] ; mov the start of the program header table to ebx = 0x10034
+=> 0x7d34:	lea    ebx,[eax+0x10000] ; mov the start of the program header table to ebx = ph = 0x10034
 => 0x7d3a:	movzx  eax,WORD PTR ds:0x1002c ; mov e_phnum to eax = 0x03
 => 0x7d41:	shl    eax,0x5 ; multiply 0x20 = 0x60
-=> 0x7d44:	lea    esi,[ebx+eax*1] ; 0x10094
+=> 0x7d44:	lea    esi,[ebx+eax*1] ; esi = eph = 0x10094
 => 0x7d47:	cmp    ebx,esi ; 0x10034 vs 0x10094
 => 0x7d49:	jae    0x7d61 ; break
-=> 0x7d4b:	push   DWORD PTR [ebx+0x4]
-=> 0x7d4e:	add    ebx,0x20
-=> 0x7d51:	push   DWORD PTR [ebx-0xc]
+=> 0x7d4b:	push   DWORD PTR [ebx+0x4] ; [0x10038] = p_offset = 0x1000
+=> 0x7d4e:	add    ebx,0x20 ; ebx = ph = 10054
+=> 0x7d51:	push   DWORD PTR [ebx-0xc] ; [0x10048] = p_memsz = 0x72ca
+=> 0x7d54:	push   DWORD PTR [ebx-0x14] ; [0x10040] = p_pa = 0x10000
+=> 0x7d57:	call   0x7cd1 ; call read seg
 ```
 The ELF file starts with `.ELF`, which is `0x7f 0x45 0x4c 0x46` in hex, [check all about ELF format  here](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format#File_header).
 
