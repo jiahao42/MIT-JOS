@@ -459,7 +459,7 @@ Here comes the last part of `bootmain`.
 => 0x7d4e:	add    ebx,0x20 ; ebx = ph = 10054
 => 0x7d51:	push   DWORD PTR [ebx-0xc] ; [0x10048] = p_memsz = 0x72ca
 => 0x7d54:	push   DWORD PTR [ebx-0x14] ; [0x10040] = p_pa = 0x10000
-=> 0x7d57:	call   0x7cd1 ; call read seg
+=> 0x7d57:	call   0x7cd1 ; call readseg
 ```
 We should learn [something](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format) about `ELF` to continue.
 ![](https://upload.wikimedia.org/wikipedia/commons/7/77/Elf-layout--en.svg)
@@ -472,7 +472,7 @@ The e_phnum : `Contains the number of entries in the program header table.`
 
 In this piece of code, we can see this instruction `0x7d41:	shl    eax,0x5`. It multiplies 0x20 to `e_phnum`, because `e_phnum` stands for `the number of entries in the program header`, and each entries is 0x20 bytes, the result of `e_phnum * 0x20` is the size of the program header table. Thus, `0x7d44:	lea    esi,[ebx+eax*1]` can calculate the address of the start of `.text` section and store it to the `esi` register.
 
-
+As we discussed before, `readseg(pa, count, offset)` means to read `count` bytes at `offset` from kernel into physical address `pa`. Here, it invokes the `readseg(0x10000, 0x72ca, 0x1000)`, so it means to read `0x72ca bytes(Size in bytes of the segment in memory)` to `0x11000`.
 
 ---
 At last, we need to answer these four questions, after all the content above, I think these will be easy for us.
