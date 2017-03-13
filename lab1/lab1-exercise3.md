@@ -451,8 +451,8 @@ Here comes the last part of `bootmain`.
 => 0x7d2f:	mov    eax,ds:0x1001c ; mov e_phoff to eax
 => 0x7d34:	lea    ebx,[eax+0x10000] ; mov the start of the program header table to ebx = ph = 0x10034
 => 0x7d3a:	movzx  eax,WORD PTR ds:0x1002c ; mov e_phnum to eax = 0x03
-=> 0x7d41:	shl    eax,0x5 ; eax = 0x03 * 0x20 = 0x60
-=> 0x7d44:	lea    esi,[ebx+eax*1] ; esi = eph = 0x10094
+=> 0x7d41:	shl    eax,0x5 ; eax = 0x03 * 0x20 = 0x60 ; size of program header table
+=> 0x7d44:	lea    esi,[ebx+eax*1] ; esi = eph = 0x10094 ; skip the whole program header table
 => 0x7d47:	cmp    ebx,esi ; 0x10034 vs 0x10094
 => 0x7d49:	jae    0x7d61 ; break
 => 0x7d4b:	push   DWORD PTR [ebx+0x4] ; [0x10038] = p_offset = 0x1000
@@ -470,8 +470,7 @@ The e_phoff :`Points to the start of the program header table. It usually follow
 
 The e_phnum : `Contains the number of entries in the program header table.`
 
-In this piece of code, we can see this instruction `0x7d41:	shl    eax,0x5`. It multiplies 0x20 to `e_phnum`, because `e_phnum` stands for
-
+In this piece of code, we can see this instruction `0x7d41:	shl    eax,0x5`. It multiplies 0x20 to `e_phnum`, because `e_phnum` stands for `the number of entries in the program header`, and each entries is 0x20 bytes, the result of `e_phnum * 0x20` is the size of the program header table. Thus, `0x7d44:	lea    esi,[ebx+eax*1]` can calculate the address of the start of `.text` section and store it to the `esi` register.
 
 
 
