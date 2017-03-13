@@ -451,7 +451,7 @@ Here comes the last part of `bootmain`.
 => 0x7d2f:	mov    eax,ds:0x1001c ; mov e_phoff to eax
 => 0x7d34:	lea    ebx,[eax+0x10000] ; mov the start of the program header table to ebx = ph = 0x10034
 => 0x7d3a:	movzx  eax,WORD PTR ds:0x1002c ; mov e_phnum to eax = 0x03
-=> 0x7d41:	shl    eax,0x5 ; multiply 0x20 = 0x60
+=> 0x7d41:	shl    eax,0x5 ; eax = 0x03 * 0x20 = 0x60
 => 0x7d44:	lea    esi,[ebx+eax*1] ; esi = eph = 0x10094
 => 0x7d47:	cmp    ebx,esi ; 0x10034 vs 0x10094
 => 0x7d49:	jae    0x7d61 ; break
@@ -461,11 +461,17 @@ Here comes the last part of `bootmain`.
 => 0x7d54:	push   DWORD PTR [ebx-0x14] ; [0x10040] = p_pa = 0x10000
 => 0x7d57:	call   0x7cd1 ; call read seg
 ```
-The ELF file starts with `.ELF`, which is `0x7f 0x45 0x4c 0x46` in hex, [check all about ELF format  here](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format#File_header).
+We should learn [something](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format) about `ELF` to continue.
+![](https://upload.wikimedia.org/wikipedia/commons/7/77/Elf-layout--en.svg)
+
+ The ELF file starts with `.ELF`, which is `0x7f 0x45 0x4c 0x46` in hex, [check all about ELF format  here](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format#File_header).
 
 The e_phoff :`Points to the start of the program header table. It usually follows the file header immediately, making the offset 0x34 or 0x40 for 32- and 64-bit ELF executables, respectively.`
 
 The e_phnum : `Contains the number of entries in the program header table.`
+
+In this piece of code, we can see this instruction `0x7d41:	shl    eax,0x5`. It multiplies 0x20 to `e_phnum`, because `e_phnum` stands for
+
 
 
 
