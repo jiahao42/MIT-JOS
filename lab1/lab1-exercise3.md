@@ -488,11 +488,18 @@ After loading the `Global Descriptor Table Register`, and set the bit0 of `cr0` 
 
 * What is the *last* instruction of the boot loader executed, and what is the first instruction of the kernel it just loaded?
 
+Last instruction of boot loader(if everything is alright) : `=> 0x7d61:	call   DWORD PTR ds:0x10018`, also` ((void)(\*)(void))(ELFHDR->e_entry))();`
 
+The first instruction of the kernel is `=> 0x10000c:	mov    WORD PTR ds:0x472,0x1234`
 
 
 * *Where* is the first instruction of the kernel?
 
+It is in `0x10000c`
 
 
 * How does the boot loader decide how many sectors it must read in order to fetch the entire kernel from disk? Where does it find this information?
+
+It read twice from the hard drive.
+The first time, all the information is hard code in the `main.c`.
+The second time, all the information is from the ELF header, decided by `p_pa`, `p_memsz` and `p_offset`.
