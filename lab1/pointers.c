@@ -10,9 +10,9 @@ f(void)
     int i;
 
     /*
-     * a = address of *a
-     * b = address of *b
-     * c = address of *c
+     * a = address of *a from stack
+     * b = address of *b from heap
+     * c = UB random address
      *
      */
     printf("1: a = %p, b = %p, c = %p\n", a, b, c);
@@ -35,8 +35,8 @@ f(void)
     printf("4: a[0] = %d, a[1] = %d, a[2] = %d, a[3] = %d\n",
 	   a[0], a[1], a[2], a[3]);
 
-    c = (int *) ((char *) c + 1);//mov 1 bit to the right
-    *c = 500;//a[4] = {200, 31, 1073742224, 302};
+    c = (int *) ((char *) c + 1);//mov 1 byte to the right
+    *c = 500;//a[4] = {200, 128144, 256, 302};
     printf("5: a[0] = %d, a[1] = %d, a[2] = %d, a[3] = %d\n",
 	   a[0], a[1], a[2], a[3]);
 
