@@ -70,6 +70,7 @@ bad:
 // Might copy more than asked
 void
 readseg(uint32_t pa, uint32_t count, uint32_t offset)//pa = 0x10000 count = 0x1000 offset = 0
+//pa = 0x100000 count = 0x72ca offset = 0x1000
 {
 	uint32_t end_pa;
 

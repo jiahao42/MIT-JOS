@@ -472,7 +472,11 @@ The e_phnum : `Contains the number of entries in the program header table.`
 
 In this piece of code, we can see this instruction `0x7d41:	shl    eax,0x5`. It multiplies 0x20 to `e_phnum`, because `e_phnum` stands for `the number of entries in the program header`, and each entries is 0x20 bytes, the result of `e_phnum * 0x20` is the size of the program header table. Thus, `0x7d44:	lea    esi,[ebx+eax*1]` can calculate the address of the start of `.text` section and store it to the `esi` register.
 
-As we discussed before, `readseg(pa, count, offset)` means to read `count` bytes at `offset` from kernel into physical address `pa`. Here, it invokes the `readseg(0x100000, 0x72ca, 0x1000)`, so it means to read `0x72ca bytes(Size in bytes of the segment in memory)` to `0x100000`.
+As we discussed before, `readseg(pa, count, offset)` means to read `count` bytes at `offset` from kernel into physical address `pa`. Here, it invokes the `readseg(0x100000, 0x72ca, 0x1000)`, so it means to read `0x72ca bytes(Size in bytes of the segment in memory)` to `0x100000` from `No.((offset / SECTSIZE) + 1)` sector.
+
+We can input `b *0x7d61` to skip all these boring repeat, at `0x7d61`, we can see `call DWORD PTR ds:0x10018`, and this is the entry of the kernel.
+
+### Now we are going to the kernel!!!
 
 ---
 At last, we need to answer these four questions, after all the content above, I think these will be easy for us.
