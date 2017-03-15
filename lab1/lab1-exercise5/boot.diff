@@ -1,0 +1,478 @@
+7c7
+< 00007a00 <start>:
+---
+> 00007c00 <start>:
+14c14
+<     7a00:	fa                   	cli    
+---
+>     7c00:	fa                   	cli    
+16c16
+<     7a01:	fc                   	cld    
+---
+>     7c01:	fc                   	cld    
+20c20
+<     7a02:	31 c0                	xor    %eax,%eax
+---
+>     7c02:	31 c0                	xor    %eax,%eax
+22c22
+<     7a04:	8e d8                	mov    %eax,%ds
+---
+>     7c04:	8e d8                	mov    %eax,%ds
+24c24
+<     7a06:	8e c0                	mov    %eax,%es
+---
+>     7c06:	8e c0                	mov    %eax,%es
+26c26
+<     7a08:	8e d0                	mov    %eax,%ss
+---
+>     7c08:	8e d0                	mov    %eax,%ss
+28c28
+< 00007a0a <seta20.1>:
+---
+> 00007c0a <seta20.1>:
+35c35
+<     7a0a:	e4 64                	in     $0x64,%al
+---
+>     7c0a:	e4 64                	in     $0x64,%al
+37c37
+<     7a0c:	a8 02                	test   $0x2,%al
+---
+>     7c0c:	a8 02                	test   $0x2,%al
+39c39
+<     7a0e:	75 fa                	jne    7a0a <seta20.1>
+---
+>     7c0e:	75 fa                	jne    7c0a <seta20.1>
+42c42
+<     7a10:	b0 d1                	mov    $0xd1,%al
+---
+>     7c10:	b0 d1                	mov    $0xd1,%al
+44c44
+<     7a12:	e6 64                	out    %al,$0x64
+---
+>     7c12:	e6 64                	out    %al,$0x64
+46c46
+< 00007a14 <seta20.2>:
+---
+> 00007c14 <seta20.2>:
+50c50
+<     7a14:	e4 64                	in     $0x64,%al
+---
+>     7c14:	e4 64                	in     $0x64,%al
+52c52
+<     7a16:	a8 02                	test   $0x2,%al
+---
+>     7c16:	a8 02                	test   $0x2,%al
+54c54
+<     7a18:	75 fa                	jne    7a14 <seta20.2>
+---
+>     7c18:	75 fa                	jne    7c14 <seta20.2>
+57c57
+<     7a1a:	b0 df                	mov    $0xdf,%al
+---
+>     7c1a:	b0 df                	mov    $0xdf,%al
+59c59
+<     7a1c:	e6 60                	out    %al,$0x60
+---
+>     7c1c:	e6 60                	out    %al,$0x60
+66,68c66,68
+<     7a1e:	0f 01 16             	lgdtl  (%esi)
+<     7a21:	64                   	fs
+<     7a22:	7a 0f                	jp     7a33 <protcseg+0x1>
+---
+>     7c1e:	0f 01 16             	lgdtl  (%esi)
+>     7c21:	64                   	fs
+>     7c22:	7c 0f                	jl     7c33 <protcseg+0x1>
+70c70
+<     7a24:	20 c0                	and    %al,%al
+---
+>     7c24:	20 c0                	and    %al,%al
+72c72
+<     7a26:	66 83 c8 01          	or     $0x1,%ax
+---
+>     7c26:	66 83 c8 01          	or     $0x1,%ax
+74c74
+<     7a2a:	0f 22 c0             	mov    %eax,%cr0
+---
+>     7c2a:	0f 22 c0             	mov    %eax,%cr0
+79c79
+<     7a2d:	ea 32 7a 08 00 66 b8 	ljmp   $0xb866,$0x87a32
+---
+>     7c2d:	ea 32 7c 08 00 66 b8 	ljmp   $0xb866,$0x87c32
+81c81
+< 00007a32 <protcseg>:
+---
+> 00007c32 <protcseg>:
+87c87
+<     7a32:	66 b8 10 00          	mov    $0x10,%ax
+---
+>     7c32:	66 b8 10 00          	mov    $0x10,%ax
+89c89
+<     7a36:	8e d8                	mov    %eax,%ds
+---
+>     7c36:	8e d8                	mov    %eax,%ds
+91c91
+<     7a38:	8e c0                	mov    %eax,%es
+---
+>     7c38:	8e c0                	mov    %eax,%es
+93c93
+<     7a3a:	8e e0                	mov    %eax,%fs
+---
+>     7c3a:	8e e0                	mov    %eax,%fs
+95c95
+<     7a3c:	8e e8                	mov    %eax,%gs
+---
+>     7c3c:	8e e8                	mov    %eax,%gs
+97c97
+<     7a3e:	8e d0                	mov    %eax,%ss
+---
+>     7c3e:	8e d0                	mov    %eax,%ss
+101c101
+<     7a40:	bc 00 7a 00 00       	mov    $0x7a00,%esp
+---
+>     7c40:	bc 00 7c 00 00       	mov    $0x7c00,%esp
+103c103
+<     7a45:	e8 c0 00 00 00       	call   7b0a <bootmain>
+---
+>     7c45:	e8 c0 00 00 00       	call   7d0a <bootmain>
+105c105
+< 00007a4a <spin>:
+---
+> 00007c4a <spin>:
+110c110
+<     7a4a:	eb fe                	jmp    7a4a <spin>
+---
+>     7c4a:	eb fe                	jmp    7c4a <spin>
+112c112
+< 00007a4c <gdt>:
+---
+> 00007c4c <gdt>:
+114,122c114,122
+<     7a54:	ff                   	(bad)  
+<     7a55:	ff 00                	incl   (%eax)
+<     7a57:	00 00                	add    %al,(%eax)
+<     7a59:	9a cf 00 ff ff 00 00 	lcall  $0x0,$0xffff00cf
+<     7a60:	00 92 cf 00 17 00    	add    %dl,0x1700cf(%edx)
+< 
+< 00007a64 <gdtdesc>:
+<     7a64:	17                   	pop    %ss
+<     7a65:	00 4c 7a 00          	add    %cl,0x0(%edx,%edi,2)
+---
+>     7c54:	ff                   	(bad)  
+>     7c55:	ff 00                	incl   (%eax)
+>     7c57:	00 00                	add    %al,(%eax)
+>     7c59:	9a cf 00 ff ff 00 00 	lcall  $0x0,$0xffff00cf
+>     7c60:	00 92 cf 00 17 00    	add    %dl,0x1700cf(%edx)
+> 
+> 00007c64 <gdtdesc>:
+>     7c64:	17                   	pop    %ss
+>     7c65:	00 4c 7c 00          	add    %cl,0x0(%esp,%edi,2)
+125c125
+< 00007a6a <waitdisk>:
+---
+> 00007c6a <waitdisk>:
+132c132
+<     7a6a:	55                   	push   %ebp
+---
+>     7c6a:	55                   	push   %ebp
+139,141c139,141
+<     7a6b:	ba f7 01 00 00       	mov    $0x1f7,%edx
+<     7a70:	89 e5                	mov    %esp,%ebp
+<     7a72:	ec                   	in     (%dx),%al
+---
+>     7c6b:	ba f7 01 00 00       	mov    $0x1f7,%edx
+>     7c70:	89 e5                	mov    %esp,%ebp
+>     7c72:	ec                   	in     (%dx),%al
+144,146c144,146
+<     7a73:	83 e0 c0             	and    $0xffffffc0,%eax
+<     7a76:	3c 40                	cmp    $0x40,%al
+<     7a78:	75 f8                	jne    7a72 <waitdisk+0x8>
+---
+>     7c73:	83 e0 c0             	and    $0xffffffc0,%eax
+>     7c76:	3c 40                	cmp    $0x40,%al
+>     7c78:	75 f8                	jne    7c72 <waitdisk+0x8>
+149,150c149,150
+<     7a7a:	5d                   	pop    %ebp
+<     7a7b:	c3                   	ret    
+---
+>     7c7a:	5d                   	pop    %ebp
+>     7c7b:	c3                   	ret    
+152c152
+< 00007a7c <readsect>:
+---
+> 00007c7c <readsect>:
+157,161c157,161
+<     7a7c:	55                   	push   %ebp
+<     7a7d:	89 e5                	mov    %esp,%ebp
+<     7a7f:	57                   	push   %edi
+<     7a80:	53                   	push   %ebx
+<     7a81:	8b 5d 0c             	mov    0xc(%ebp),%ebx
+---
+>     7c7c:	55                   	push   %ebp
+>     7c7d:	89 e5                	mov    %esp,%ebp
+>     7c7f:	57                   	push   %edi
+>     7c80:	53                   	push   %ebx
+>     7c81:	8b 5d 0c             	mov    0xc(%ebp),%ebx
+164c164
+<     7a84:	e8 e1 ff ff ff       	call   7a6a <waitdisk>
+---
+>     7c84:	e8 e1 ff ff ff       	call   7c6a <waitdisk>
+171,179c171,179
+<     7a89:	ba f2 01 00 00       	mov    $0x1f2,%edx
+<     7a8e:	b0 01                	mov    $0x1,%al
+<     7a90:	ee                   	out    %al,(%dx)
+<     7a91:	0f b6 c3             	movzbl %bl,%eax
+<     7a94:	b2 f3                	mov    $0xf3,%dl
+<     7a96:	ee                   	out    %al,(%dx)
+<     7a97:	0f b6 c7             	movzbl %bh,%eax
+<     7a9a:	b2 f4                	mov    $0xf4,%dl
+<     7a9c:	ee                   	out    %al,(%dx)
+---
+>     7c89:	ba f2 01 00 00       	mov    $0x1f2,%edx
+>     7c8e:	b0 01                	mov    $0x1,%al
+>     7c90:	ee                   	out    %al,(%dx)
+>     7c91:	0f b6 c3             	movzbl %bl,%eax
+>     7c94:	b2 f3                	mov    $0xf3,%dl
+>     7c96:	ee                   	out    %al,(%dx)
+>     7c97:	0f b6 c7             	movzbl %bh,%eax
+>     7c9a:	b2 f4                	mov    $0xf4,%dl
+>     7c9c:	ee                   	out    %al,(%dx)
+185,189c185,189
+<     7a9d:	89 d8                	mov    %ebx,%eax
+<     7a9f:	b2 f5                	mov    $0xf5,%dl
+<     7aa1:	c1 e8 10             	shr    $0x10,%eax
+<     7aa4:	0f b6 c0             	movzbl %al,%eax
+<     7aa7:	ee                   	out    %al,(%dx)
+---
+>     7c9d:	89 d8                	mov    %ebx,%eax
+>     7c9f:	b2 f5                	mov    $0xf5,%dl
+>     7ca1:	c1 e8 10             	shr    $0x10,%eax
+>     7ca4:	0f b6 c0             	movzbl %al,%eax
+>     7ca7:	ee                   	out    %al,(%dx)
+191,198c191,198
+<     7aa8:	c1 eb 18             	shr    $0x18,%ebx
+<     7aab:	b2 f6                	mov    $0xf6,%dl
+<     7aad:	88 d8                	mov    %bl,%al
+<     7aaf:	83 c8 e0             	or     $0xffffffe0,%eax
+<     7ab2:	ee                   	out    %al,(%dx)
+<     7ab3:	b0 20                	mov    $0x20,%al
+<     7ab5:	b2 f7                	mov    $0xf7,%dl
+<     7ab7:	ee                   	out    %al,(%dx)
+---
+>     7ca8:	c1 eb 18             	shr    $0x18,%ebx
+>     7cab:	b2 f6                	mov    $0xf6,%dl
+>     7cad:	88 d8                	mov    %bl,%al
+>     7caf:	83 c8 e0             	or     $0xffffffe0,%eax
+>     7cb2:	ee                   	out    %al,(%dx)
+>     7cb3:	b0 20                	mov    $0x20,%al
+>     7cb5:	b2 f7                	mov    $0xf7,%dl
+>     7cb7:	ee                   	out    %al,(%dx)
+203c203
+<     7ab8:	e8 ad ff ff ff       	call   7a6a <waitdisk>
+---
+>     7cb8:	e8 ad ff ff ff       	call   7c6a <waitdisk>
+210,214c210,214
+<     7abd:	8b 7d 08             	mov    0x8(%ebp),%edi
+<     7ac0:	b9 80 00 00 00       	mov    $0x80,%ecx
+<     7ac5:	ba f0 01 00 00       	mov    $0x1f0,%edx
+<     7aca:	fc                   	cld    
+<     7acb:	f2 6d                	repnz insl (%dx),%es:(%edi)
+---
+>     7cbd:	8b 7d 08             	mov    0x8(%ebp),%edi
+>     7cc0:	b9 80 00 00 00       	mov    $0x80,%ecx
+>     7cc5:	ba f0 01 00 00       	mov    $0x1f0,%edx
+>     7cca:	fc                   	cld    
+>     7ccb:	f2 6d                	repnz insl (%dx),%es:(%edi)
+219,222c219,222
+<     7acd:	5b                   	pop    %ebx
+<     7ace:	5f                   	pop    %edi
+<     7acf:	5d                   	pop    %ebp
+<     7ad0:	c3                   	ret    
+---
+>     7ccd:	5b                   	pop    %ebx
+>     7cce:	5f                   	pop    %edi
+>     7ccf:	5d                   	pop    %ebp
+>     7cd0:	c3                   	ret    
+224c224
+< 00007ad1 <readseg>:
+---
+> 00007cd1 <readseg>:
+231,233c231,233
+<     7ad1:	55                   	push   %ebp
+<     7ad2:	89 e5                	mov    %esp,%ebp
+<     7ad4:	57                   	push   %edi
+---
+>     7cd1:	55                   	push   %ebp
+>     7cd2:	89 e5                	mov    %esp,%ebp
+>     7cd4:	57                   	push   %edi
+237c237
+<     7ad5:	8b 7d 0c             	mov    0xc(%ebp),%edi
+---
+>     7cd5:	8b 7d 0c             	mov    0xc(%ebp),%edi
+244,247c244,247
+<     7ad8:	56                   	push   %esi
+<     7ad9:	8b 75 10             	mov    0x10(%ebp),%esi
+<     7adc:	53                   	push   %ebx
+<     7add:	8b 5d 08             	mov    0x8(%ebp),%ebx
+---
+>     7cd8:	56                   	push   %esi
+>     7cd9:	8b 75 10             	mov    0x10(%ebp),%esi
+>     7cdc:	53                   	push   %ebx
+>     7cdd:	8b 5d 08             	mov    0x8(%ebp),%ebx
+254c254
+<     7ae0:	c1 ee 09             	shr    $0x9,%esi
+---
+>     7ce0:	c1 ee 09             	shr    $0x9,%esi
+261c261
+<     7ae3:	01 df                	add    %ebx,%edi
+---
+>     7ce3:	01 df                	add    %ebx,%edi
+268c268
+<     7ae5:	46                   	inc    %esi
+---
+>     7ce5:	46                   	inc    %esi
+275c275
+<     7ae6:	81 e3 00 fe ff ff    	and    $0xfffffe00,%ebx
+---
+>     7ce6:	81 e3 00 fe ff ff    	and    $0xfffffe00,%ebx
+282,283c282,283
+<     7aec:	39 fb                	cmp    %edi,%ebx
+<     7aee:	73 12                	jae    7b02 <readseg+0x31>
+---
+>     7cec:	39 fb                	cmp    %edi,%ebx
+>     7cee:	73 12                	jae    7d02 <readseg+0x31>
+289c289
+<     7af0:	56                   	push   %esi
+---
+>     7cf0:	56                   	push   %esi
+292c292
+<     7af1:	46                   	inc    %esi
+---
+>     7cf1:	46                   	inc    %esi
+299c299
+<     7af2:	53                   	push   %ebx
+---
+>     7cf2:	53                   	push   %ebx
+301c301
+<     7af3:	81 c3 00 02 00 00    	add    $0x200,%ebx
+---
+>     7cf3:	81 c3 00 02 00 00    	add    $0x200,%ebx
+308c308
+<     7af9:	e8 7e ff ff ff       	call   7a7c <readsect>
+---
+>     7cf9:	e8 7e ff ff ff       	call   7c7c <readsect>
+311,313c311,313
+<     7afe:	58                   	pop    %eax
+<     7aff:	5a                   	pop    %edx
+<     7b00:	eb ea                	jmp    7aec <readseg+0x1b>
+---
+>     7cfe:	58                   	pop    %eax
+>     7cff:	5a                   	pop    %edx
+>     7d00:	eb ea                	jmp    7cec <readseg+0x1b>
+316,321c316,321
+<     7b02:	8d 65 f4             	lea    -0xc(%ebp),%esp
+<     7b05:	5b                   	pop    %ebx
+<     7b06:	5e                   	pop    %esi
+<     7b07:	5f                   	pop    %edi
+<     7b08:	5d                   	pop    %ebp
+<     7b09:	c3                   	ret    
+---
+>     7d02:	8d 65 f4             	lea    -0xc(%ebp),%esp
+>     7d05:	5b                   	pop    %ebx
+>     7d06:	5e                   	pop    %esi
+>     7d07:	5f                   	pop    %edi
+>     7d08:	5d                   	pop    %ebp
+>     7d09:	c3                   	ret    
+323c323
+< 00007b0a <bootmain>:
+---
+> 00007d0a <bootmain>:
+330,333c330,333
+<     7b0a:	55                   	push   %ebp
+<     7b0b:	89 e5                	mov    %esp,%ebp
+<     7b0d:	56                   	push   %esi
+<     7b0e:	53                   	push   %ebx
+---
+>     7d0a:	55                   	push   %ebp
+>     7d0b:	89 e5                	mov    %esp,%ebp
+>     7d0d:	56                   	push   %esi
+>     7d0e:	53                   	push   %ebx
+338,341c338,341
+<     7b0f:	6a 00                	push   $0x0
+<     7b11:	68 00 10 00 00       	push   $0x1000
+<     7b16:	68 00 00 01 00       	push   $0x10000
+<     7b1b:	e8 b1 ff ff ff       	call   7ad1 <readseg>
+---
+>     7d0f:	6a 00                	push   $0x0
+>     7d11:	68 00 10 00 00       	push   $0x1000
+>     7d16:	68 00 00 01 00       	push   $0x10000
+>     7d1b:	e8 b1 ff ff ff       	call   7cd1 <readseg>
+345,348c345,348
+<     7b20:	83 c4 0c             	add    $0xc,%esp
+<     7b23:	81 3d 00 00 01 00 7f 	cmpl   $0x464c457f,0x10000
+<     7b2a:	45 4c 46 
+<     7b2d:	75 38                	jne    7b67 <bootmain+0x5d>
+---
+>     7d20:	83 c4 0c             	add    $0xc,%esp
+>     7d23:	81 3d 00 00 01 00 7f 	cmpl   $0x464c457f,0x10000
+>     7d2a:	45 4c 46 
+>     7d2d:	75 38                	jne    7d67 <bootmain+0x5d>
+353,354c353,354
+<     7b2f:	a1 1c 00 01 00       	mov    0x1001c,%eax
+<     7b34:	8d 98 00 00 01 00    	lea    0x10000(%eax),%ebx
+---
+>     7d2f:	a1 1c 00 01 00       	mov    0x1001c,%eax
+>     7d34:	8d 98 00 00 01 00    	lea    0x10000(%eax),%ebx
+356,358c356,358
+<     7b3a:	0f b7 05 2c 00 01 00 	movzwl 0x1002c,%eax
+<     7b41:	c1 e0 05             	shl    $0x5,%eax
+<     7b44:	8d 34 03             	lea    (%ebx,%eax,1),%esi
+---
+>     7d3a:	0f b7 05 2c 00 01 00 	movzwl 0x1002c,%eax
+>     7d41:	c1 e0 05             	shl    $0x5,%eax
+>     7d44:	8d 34 03             	lea    (%ebx,%eax,1),%esi
+360,361c360,361
+<     7b47:	39 f3                	cmp    %esi,%ebx
+<     7b49:	73 16                	jae    7b61 <bootmain+0x57>
+---
+>     7d47:	39 f3                	cmp    %esi,%ebx
+>     7d49:	73 16                	jae    7d61 <bootmain+0x57>
+365c365
+<     7b4b:	ff 73 04             	pushl  0x4(%ebx)
+---
+>     7d4b:	ff 73 04             	pushl  0x4(%ebx)
+372c372
+<     7b4e:	83 c3 20             	add    $0x20,%ebx
+---
+>     7d4e:	83 c3 20             	add    $0x20,%ebx
+376,378c376,378
+<     7b51:	ff 73 f4             	pushl  -0xc(%ebx)
+<     7b54:	ff 73 ec             	pushl  -0x14(%ebx)
+<     7b57:	e8 75 ff ff ff       	call   7ad1 <readseg>
+---
+>     7d51:	ff 73 f4             	pushl  -0xc(%ebx)
+>     7d54:	ff 73 ec             	pushl  -0x14(%ebx)
+>     7d57:	e8 75 ff ff ff       	call   7cd1 <readseg>
+385,386c385,386
+<     7b5c:	83 c4 0c             	add    $0xc,%esp
+<     7b5f:	eb e6                	jmp    7b47 <bootmain+0x3d>
+---
+>     7d5c:	83 c4 0c             	add    $0xc,%esp
+>     7d5f:	eb e6                	jmp    7d47 <bootmain+0x3d>
+393c393
+<     7b61:	ff 15 18 00 01 00    	call   *0x10018
+---
+>     7d61:	ff 15 18 00 01 00    	call   *0x10018
+400,405c400,405
+<     7b67:	ba 00 8a 00 00       	mov    $0x8a00,%edx
+<     7b6c:	b8 00 8a ff ff       	mov    $0xffff8a00,%eax
+<     7b71:	66 ef                	out    %ax,(%dx)
+<     7b73:	b8 00 8e ff ff       	mov    $0xffff8e00,%eax
+<     7b78:	66 ef                	out    %ax,(%dx)
+<     7b7a:	eb fe                	jmp    7b7a <bootmain+0x70>
+---
+>     7d67:	ba 00 8a 00 00       	mov    $0x8a00,%edx
+>     7d6c:	b8 00 8a ff ff       	mov    $0xffff8a00,%eax
+>     7d71:	66 ef                	out    %ax,(%dx)
+>     7d73:	b8 00 8e ff ff       	mov    $0xffff8e00,%eax
+>     7d78:	66 ef                	out    %ax,(%dx)
+>     7d7a:	eb fe                	jmp    7d7a <bootmain+0x70>
