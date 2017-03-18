@@ -17,7 +17,9 @@ eph = ph + ELFHDR->e_phnum;
 for (; ph < eph; ph++)
   // p_pa is the load address of this segment (as well
   // as the physical address)
+  /*
+   * p_pa = 0x100000 p_memsz = 0x72ca p_offset = 0x1000
+   * which means to read 0x72ca bytes(Size in bytes of the segment in memory) to 0x100000 from No.((offset / SECTSIZE) + 1) sector. 
+   */
   readseg(ph->p_pa, ph->p_memsz, ph->p_offset);
-```
-
 ```
