@@ -8,7 +8,7 @@
 
 At the point the BIOS enters the boot sector, the content at the address `0x00100000` is all zeros.
 
-At the point the boot loader enters the kernel, the content at the address `0x00100000` is the `.text` section in the kernel.
+At the point the boot loader enters the kernel, the content at the address `0x00100000` is the `.text` section in the kernel. The bootloader reads it using `readseg` after having read the header of the kernel.
 
 ```C
 // load each program segment (ignores ph flags)
@@ -19,7 +19,7 @@ for (; ph < eph; ph++)
   // as the physical address)
   /*
    * p_pa = 0x100000 p_memsz = 0x72ca p_offset = 0x1000
-   * which means to read 0x72ca bytes(Size in bytes of the segment in memory) to 0x100000 from No.((offset / SECTSIZE) + 1) sector. 
+   * which means to read 0x72ca bytes(Size in bytes of the segment in memory) to 0x100000 from No.((offset / SECTSIZE) + 1) sector.
    */
   readseg(ph->p_pa, ph->p_memsz, ph->p_offset);
 ```
