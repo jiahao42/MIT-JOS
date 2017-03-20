@@ -43,16 +43,18 @@ Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
   0 .text         00001a17  f0100000  00100000  00001000  2**4
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  1 .rodata       000006ec  f0101a20  00101a20  00002a20  2**5
-                  CONTENTS, ALLOC, LOAD, READONLY, DATA
-  2 .stab         00003895  f010210c  0010210c  0000310c  2**2
-                  CONTENTS, ALLOC, LOAD, READONLY, DATA
-  3 .stabstr      00001929  f01059a1  001059a1  000069a1  2**0
-                  CONTENTS, ALLOC, LOAD, READONLY, DATA
-  4 .data         0000a300  f0108000  00108000  00009000  2**12
-                  CONTENTS, ALLOC, LOAD, DATA
-  5 .bss          00000660  f0112300  00112300  00013300  2**5
-                  ALLOC
-  6 .comment      0000002b  00000000  00000000  00013300  2**0
-                  CONTENTS, READONLY
+```
+
+And we can see the `page table` in the `kern/entrypgdir.c`, it includes 4MB memory in it.
+
+> What is the first instruction after the new mapping is established that would fail to work properly if the mapping weren't in place? Comment out the movl %eax, %cr0 in kern/entry.S, trace into it, and see if you were right.
+
+If the mapping weren't in place, then `jmp *%eax` will crash the kernel, because when this instruction is executed, the eip has changed to `0xf010002f`:
+```
+=> 0x10002d:	jmp    eax
+=> 0xf010002f <relocated>:	mov    ebp,0x0 ; the eip has been changed
+relocated () at kern/entry.S:73
+73		movl	$0x0,%ebp			# nuke frame pointer
+=> 0xf0100034 <relocated+5>:	mov    esp,0xf0110000
+relocated () at kern/entry.S:76
 ```
