@@ -1,4 +1,4 @@
-## Exercise 2
+## lab1-exercise 2
 > Use GDB's si (Step Instruction) command to trace into the ROM BIOS for a few more instructions, and try to guess what it might be doing. You might want to look at Phil Storrs I/O Ports Description, as well as other materials on the 6.828 reference materials page. No need to figure out all the details - just the general idea of what the BIOS is doing first.
 
 <!-- more -->

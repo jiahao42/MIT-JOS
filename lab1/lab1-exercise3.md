@@ -1,4 +1,4 @@
-## Exercise 3
+## lab1-exercise 3
 >1. Take a look at the lab tools guide, especially the section on GDB commands. Even if you're familiar with GDB, this includes some esoteric GDB commands that are useful for OS work.
 <!-- more -->
 
