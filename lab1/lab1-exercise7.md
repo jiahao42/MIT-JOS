@@ -31,3 +31,28 @@ bit	label	description
 30	cd	cache disable
 31	pg	paging
 ```
+
+When we use `objdump -h` to see the `VMA` and `LMA` about the kernel, we can see that the `VMA` is `0xf0100000` which means the program needs to run at the virtual address `0xf0100000`, and `LMA` is `0x100000`, which means the code, also the `.text` section of the kernel, is stored at address `0x100000`:
+
+```
+james@ubuntu:~/MIT-JOS/lab1/obj/kern$ objdump -h kernel
+
+kernel:     file format elf32-i386
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         00001a17  f0100000  00100000  00001000  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .rodata       000006ec  f0101a20  00101a20  00002a20  2**5
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+  2 .stab         00003895  f010210c  0010210c  0000310c  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+  3 .stabstr      00001929  f01059a1  001059a1  000069a1  2**0
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+  4 .data         0000a300  f0108000  00108000  00009000  2**12
+                  CONTENTS, ALLOC, LOAD, DATA
+  5 .bss          00000660  f0112300  00112300  00013300  2**5
+                  ALLOC
+  6 .comment      0000002b  00000000  00000000  00013300  2**0
+                  CONTENTS, READONLY
+```
