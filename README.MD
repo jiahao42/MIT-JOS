@@ -14,3 +14,7 @@ You can check [my blog](http://jameeeees.github.io/)
 * [lab1-exercise5](https://github.com/Jameeeees/MIT-JOS/blob/master/lab1/lab1-exercise5/lab1-exercise5.md)
 
 * [lab1-exercise6](https://github.com/Jameeeees/MIT-JOS/blob/master/lab1/lab1-exercise6.md)
+
+* [lab1-exercise7](https://github.com/Jameeeees/MIT-JOS/blob/master/lab1/lab1-exercise7.md)
+
+* [lab1-exercise8](https://github.com/Jameeeees/MIT-JOS/blob/master/lab1/lab1-exercise8.md)
