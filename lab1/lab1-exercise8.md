@@ -15,8 +15,13 @@ int cons_getc(void);
 void kbd_intr(void); // irq 1
 void serial_intr(void); // irq 4
 ```
-`cons_init` is used for initializing the console devices,
-
+`cons_init` is used for initializing the console devices:
+```c
+cga_init();
+kbd_init();
+serial_init();
+```
+It initializes [CGA](https://en.wikipedia.org/wiki/Color_Graphics_Adapter), keyboard and serial ports.
 
 * stdio.h
 Second, `inc/stdio.h` declares a series of `printf`, such as:
