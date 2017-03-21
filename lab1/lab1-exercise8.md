@@ -6,6 +6,22 @@
 
 **1. Explain the interface between printf.c and console.c. Specifically, what function does console.c export? How is this function used by printf.c?**
 
+First, `inc/stdio.h` declares a series of `printf`, such as:
+```
+// lib/printfmt.c
+void	printfmt(void (*putch)(int, void*), void *putdat, const char *fmt, ...);
+void	vprintfmt(void (*putch)(int, void*), void *putdat, const char *fmt, va_list);
+int	snprintf(char *str, int size, const char *fmt, ...);
+int	vsnprintf(char *str, int size, const char *fmt, va_list);
+
+// lib/printf.c
+int	cprintf(const char *fmt, ...);
+int	vcprintf(const char *fmt, va_list);
+```
+And as the comments above show, 
+
+
+
 **2. Explain the following from console.c:**
 ```C
 1      if (crt_pos >= CRT_SIZE) {
