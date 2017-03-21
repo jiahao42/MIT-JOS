@@ -6,7 +6,20 @@
 
 **1. Explain the interface between printf.c and console.c. Specifically, what function does console.c export? How is this function used by printf.c?**
 
-First, `inc/stdio.h` declares a series of `printf`, such as:
+* console.c
+First, we can see what `console.c` exports from `kern/console.h`:
+```C
+void cons_init(void);
+int cons_getc(void);
+
+void kbd_intr(void); // irq 1
+void serial_intr(void); // irq 4
+```
+`cons_init` is used for initializing the console devices,
+
+
+* stdio.h
+Second, `inc/stdio.h` declares a series of `printf`, such as:
 ```
 // lib/printfmt.c
 void	printfmt(void (*putch)(int, void*), void *putdat, const char *fmt, ...);
@@ -18,7 +31,7 @@ int	vsnprintf(char *str, int size, const char *fmt, va_list);
 int	cprintf(const char *fmt, ...);
 int	vcprintf(const char *fmt, va_list);
 ```
-And as the comments above show, 
+And as the comments above show, these functions are implemented in `lib/printfmt.c` and `lib/printf.c`.
 
 
 
