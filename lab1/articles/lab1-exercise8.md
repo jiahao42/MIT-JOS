@@ -11,7 +11,7 @@
 * console.c
 
 First, let's focus on `General device-independent console code` starts from line 376 in `console.c`, because this is much better to understand without too much detail with the hardwares.
-A struct is used to represent the console:
+A struct is used to represent the circular input buffer of console:
 
 ```C
 #define CONSBUFSIZE 512
@@ -39,7 +39,7 @@ static int serial_proc_data(void)
 }
 ```
 
-We can see that actually the implementation code is in `serial_proc_data`, and it read data from `COM1+COM_LSR`, check the ports in the code :
+We can see that actually the implementation code is in `int serial_proc_data(void)`, and it read character from `COM1+COM_LSR`, and then return it,  check the ports in the code :
 
 ```C
 #define COM1		0x3F8
@@ -67,9 +67,31 @@ We can see what the ports do [here](http://bochs.sourceforge.net/techspec/PORTS.
 Now we can see what `serial_proc_data(void)` does.
 **It check if the data is ready, if ready, return the character, if not, return -1 instead.**
 
-Also, we can see what `cons_intr` does, when the parameter is `serial_proc_data(void)`, basically, it write data which is read from port `03F8` to the struct `cons`.
+Also, we can see what `cons_intr` does, when the parameter is `int serial_proc_data(void)`, basically, it write data which is read from port `03F8` to the struct `cons`.
 
-**Now let's turn to `kbd_intr(void)` to see what happens.**
+**Now let's turn to `void kbd_intr(void)` to see what happens.**
+`kbd_intr` passes `int kbd_proc_data(void)` as the parameter to the `cons_intr`, as the name `kbd_proc_data` indicates, this function is used to process the character read from keyboard, and return the character. `kbd_proc_data` is very interesting, you can see how `CapsLock` and `Ctrl + Alt + Del` work here, and I am sure [this material](https://www.win.tue.nl/~aeb/linux/kbd/scancodes-1.html) will help it.
+
+**And now we can see what `cons_intr` does, it reads character from serial and keyboard, and write characters to the buffer, maintaining the circular input buffer of console at the same time.**
+
+```C
+static void
+cons_intr(int (*proc)(void))
+{
+	int c;
+
+	while ((c = (*proc)()) != -1) {
+		if (c == 0)
+			continue;
+		cons.buf[cons.wpos++] = c; // write the character to the buffer
+		if (cons.wpos == CONSBUFSIZE) // if the buffer is full, restart from the start of the buffer
+			cons.wpos = 0;
+	}
+}
+```
+
+
+
 
 
 
