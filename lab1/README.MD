@@ -5,16 +5,17 @@ You can check [my blog](http://jameeeees.github.io/)
 
 ## My notes
 
-* [lab1-exercise2](https://github.com/Jameeeees/MIT-JOS/blob/master/lab1/lab1-exercise2.md)
+* [lab1-exercise2](https://github.com/Jameeeees/MIT-JOS/blob/master/lab1/articles/lab1-exercise2.md)
 
-* [lab1-exercise3](https://github.com/Jameeeees/MIT-JOS/blob/master/lab1/lab1-exercise3.md)
+* [lab1-exercise3](https://github.com/Jameeeees/MIT-JOS/blob/master/lab1/articles/lab1-exercise3.md)
 
-* [lab1-exercise4](https://github.com/Jameeeees/MIT-JOS/blob/master/lab1/lab1-exercise4.md)
+* [lab1-exercise4](https://github.com/Jameeeees/MIT-JOS/blob/master/lab1/articles/lab1-exercise4.md)
 
-* [lab1-exercise5](https://github.com/Jameeeees/MIT-JOS/blob/master/lab1/lab1-exercise5/lab1-exercise5.md)
+* [lab1-exercise5](https://github.com/Jameeeees/MIT-JOS/blob/master/lab1/articles/lab1-exercise5.md)
 
-* [lab1-exercise6](https://github.com/Jameeeees/MIT-JOS/blob/master/lab1/lab1-exercise6.md)
+* [lab1-exercise6](https://github.com/Jameeeees/MIT-JOS/blob/master/lab1/articles/lab1-exercise6.md)
 
-* [lab1-exercise7](https://github.com/Jameeeees/MIT-JOS/blob/master/lab1/lab1-exercise7.md)
+* [lab1-exercise7](https://github.com/Jameeeees/MIT-JOS/blob/master/lab1/articles/lab1-exercise7.md)
 
-* [lab1-exercise8](https://github.com/Jameeeees/MIT-JOS/blob/master/lab1/lab1-exercise8.md)
+* [lab1-exercise8](https://github.com/Jameeeees/MIT-JOS/blob/master/lab1/articles/lab1-exercise8.md)
+
