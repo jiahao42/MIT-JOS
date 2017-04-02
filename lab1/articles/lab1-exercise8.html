@@ -1,0 +1,125 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+</head>
+<body>
+<h3 id="lab1-exercise-8">lab1-exercise 8</h3>
+<blockquote>
+<p>Exercise 8. We have omitted a small fragment of code - the code necessary to print octal numbers using patterns of the form &quot;%o&quot;. Find and fill in this code fragment.</p>
+</blockquote>
+<hr />
+<h4 id="be-able-to-answer-the-following-questions">Be able to answer the following questions:</h4>
+<p><strong>1. Explain the interface between printf.c and console.c. Specifically, what function does console.c export? How is this function used by printf.c?</strong></p>
+<ul>
+<li>console.c</li>
+</ul>
+<p>First, let's focus on <code>General device-independent console code</code> starts from line 376 in <code>console.c</code>, because this is much better to understand without too much detail with the hardwares. A struct is used to represent the console:</p>
+<pre class="sourceCode C"><code class="sourceCode c"><span class="ot">#define CONSBUFSIZE 512</span>
+<span class="dt">static</span> <span class="kw">struct</span> {
+    <span class="dt">uint8_t</span> buf[CONSBUFSIZE];
+    <span class="dt">uint32_t</span> rpos;
+    <span class="dt">uint32_t</span> wpos;
+} cons;</code></pre>
+<p>And here comes a function <code>static void cons_intr(int (*proc)(void))</code>, we can see that a function is passed to <code>cons_intr</code> through <a href="https://en.wikipedia.org/wiki/Function_pointer">function pointer</a>. <code>serial_intr(void)</code> and <code>kbd_intr(void)</code> invoke <code>cons_intr</code>.</p>
+<p><strong>First let's see how <code>serial_intr(void)</code> works.</strong></p>
+<pre class="sourceCode C"><code class="sourceCode c"><span class="dt">void</span> serial_intr(<span class="dt">void</span>)
+{
+    <span class="kw">if</span> (serial_exists)
+        cons_intr(serial_proc_data);<span class="co">//pass serial_proc_data to cons_intr</span>
+}
+<span class="dt">static</span> <span class="dt">int</span> serial_proc_data(<span class="dt">void</span>)
+{
+    <span class="kw">if</span> (!(inb(COM1+COM_LSR) &amp; COM_LSR_DATA))
+        <span class="kw">return</span> -<span class="dv">1</span>;
+    <span class="kw">return</span> inb(COM1+COM_RX);
+}</code></pre>
+<p>We can see that actually the implementation code is in <code>serial_proc_data</code>, and it read data from <code>COM1+COM_LSR</code>, check the ports in the code :</p>
+<pre class="sourceCode C"><code class="sourceCode c"><span class="ot">#define COM1        0x3F8</span>
+<span class="ot">#define COM_LSR     5   </span><span class="co">// In:  Line Status Register</span>
+<span class="ot">#define   COM_LSR_DATA  0x01    </span><span class="co">//   Data available</span>
+<span class="ot">#define COM_RX      0   </span><span class="co">// In:  Receive buffer (DLAB=0)</span></code></pre>
+<p>We can see what the ports do <a href="http://bochs.sourceforge.net/techspec/PORTS.LST">here</a>:</p>
+<pre class="plain"><code>03F8    w   serial port, transmitter holding register, which contains the
+        character to be sent. Bit 0 is sent first.
+         bit 7-0   data bits when DLAB=0 (Divisor Latch Access Bit)
+        r   receiver buffer register, which contains the received character
+        Bit 0 is received first
+         bit 7-0   data bits when DLAB=0 (Divisor Latch Access Bit)
+        r/w divisor latch low byte when DLAB=1
+03FD    r   line status register
+        ...
+        bit 0 = 1  data ready. a complete incoming character has been
+                received and sent to the receiver buffer register.</code></pre>
+<p>Now we can see what <code>serial_proc_data(void)</code> does. <strong>It check if the data is ready, if ready, return the character, if not, return -1 instead.</strong></p>
+<p>Also, we can see what <code>cons_intr</code> does, when the parameter is <code>serial_proc_data(void)</code>, basically, it write data which is read from port <code>03F8</code> to the struct <code>cons</code>.</p>
+<p><strong>Now let's turn to <code>kbd_intr(void)</code> to see what happens.</strong></p>
+<ul>
+<li>stdio.h Second, <code>inc/stdio.h</code> declares a series of <code>printf</code>, such as:</li>
+</ul>
+<pre class="sourceCode C"><code class="sourceCode c"><span class="co">// lib/printfmt.c</span>
+<span class="dt">void</span>    printfmt(<span class="dt">void</span> (*putch)(<span class="dt">int</span>, <span class="dt">void</span>*), <span class="dt">void</span> *putdat, <span class="dt">const</span> <span class="dt">char</span> *fmt, ...);
+<span class="dt">void</span>    vprintfmt(<span class="dt">void</span> (*putch)(<span class="dt">int</span>, <span class="dt">void</span>*), <span class="dt">void</span> *putdat, <span class="dt">const</span> <span class="dt">char</span> *fmt, va_list);
+<span class="dt">int</span> snprintf(<span class="dt">char</span> *str, <span class="dt">int</span> size, <span class="dt">const</span> <span class="dt">char</span> *fmt, ...);
+<span class="dt">int</span> vsnprintf(<span class="dt">char</span> *str, <span class="dt">int</span> size, <span class="dt">const</span> <span class="dt">char</span> *fmt, va_list);
+
+<span class="co">// lib/printf.c</span>
+<span class="dt">int</span> cprintf(<span class="dt">const</span> <span class="dt">char</span> *fmt, ...);
+<span class="dt">int</span> vcprintf(<span class="dt">const</span> <span class="dt">char</span> *fmt, va_list);</code></pre>
+<p>And as the comments above show, these functions are implemented in <code>lib/printfmt.c</code> and <code>lib/printf.c</code>.</p>
+<hr />
+<p><strong>2. Explain the following from console.c:</strong></p>
+<pre class="sourceCode C"><code class="sourceCode c"><span class="dv">1</span>      <span class="kw">if</span> (crt_pos &gt;= CRT_SIZE) {
+<span class="dv">2</span>              <span class="dt">int</span> i;
+<span class="dv">3</span>              memcpy(crt_buf, crt_buf + CRT_COLS, (CRT_SIZE - CRT_COLS) * <span class="kw">sizeof</span>(<span class="dt">uint16_t</span>));
+<span class="dv">4</span>              <span class="kw">for</span> (i = CRT_SIZE - CRT_COLS; i &lt; CRT_SIZE; i++)
+<span class="dv">5</span>                      crt_buf[i] = <span class="bn">0x0700</span> | &#39; &#39;;
+<span class="dv">6</span>              crt_pos -= CRT_COLS;
+<span class="dv">7</span>      }</code></pre>
+<hr />
+<p><strong>3. For the following questions you might wish to consult the notes for Lecture 2. These notes cover GCC's calling convention on the x86. Trace the execution of the following code step-by-step:</strong></p>
+<pre class="sourceCode C"><code class="sourceCode c"><span class="dt">int</span> x = <span class="dv">1</span>, y = <span class="dv">3</span>, z = <span class="dv">4</span>;
+cprintf(<span class="st">&quot;x %d, y %x, z %d</span><span class="ch">\n</span><span class="st">&quot;</span>, x, y, z);</code></pre>
+<ul>
+<li>In the call to cprintf(), to what does fmt point? To what does ap point?</li>
+<li>List (in order of execution) each call to cons_putc, va_arg, and vcprintf. For cons_putc, list its argument as well. For va_arg, list what ap points to before and after the call. For vcprintf list the values of its two arguments.</li>
+</ul>
+<hr />
+<p><strong>4. Run the following code.</strong></p>
+<pre class="sourceCode C"><code class="sourceCode c">    <span class="dt">unsigned</span> <span class="dt">int</span> i = <span class="bn">0x00646c72</span>;
+    cprintf(<span class="st">&quot;H%x Wo%s&quot;</span>, <span class="dv">57616</span>, &amp;i);</code></pre>
+<p><strong>What is the output? Explain how this output is arrived at in the step-by-step manner of the previous exercise. Here's an ASCII table that maps bytes to characters.</strong></p>
+<p>The output depends on that fact that the x86 is little-endian. If the x86 were instead big-endian what would you set i to in order to yield the same output? Would you need to change 57616 to a different value?</p>
+<p>Here's a description of <a href="http://www.webopedia.com/TERM/B/big_endian.html">little- and big-endian</a> and <a href="http://www.networksorcery.com/enp/ien/ien137.txt">a more whimsical description</a>.**</p>
+<hr />
+<p><strong>5. In the following code, what is going to be printed after 'y='? (note: the answer is not a specific value.) Why does this happen?</strong></p>
+<pre class="sourceCode C"><code class="sourceCode c">    cprintf(<span class="st">&quot;x=%d y=%d&quot;</span>, <span class="dv">3</span>);</code></pre>
+<hr />
+<p><strong>6. Let's say that GCC changed its calling convention so that it pushed arguments on the stack in declaration order, so that the last argument is pushed last. How would you have to change cprintf or its interface so that it would still be possible to pass it a variable number of arguments?</strong></p>
+<hr />
+<p><strong>7. Challenge Enhance the console to allow text to be printed in different colors. The traditional way to do this is to make it interpret <a href="http://www.dee.ufcg.edu.br/~rrbrandt/tools/ansi.html">ANSI escape sequences</a> embedded in the text strings printed to the console, but you may use any mechanism you like. There is plenty of information on <a href="https://pdos.csail.mit.edu/6.828/2011/reference.html">the 6.828 reference page</a> and elsewhere on the web on programming the VGA display hardware. If you're feeling really adventurous, you could try switching the VGA hardware into a graphics mode and making the console draw text onto the graphical frame buffer.</strong></p>
+</body>
+</html>

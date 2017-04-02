@@ -1,0 +1,63 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+</head>
+<body>
+<h2 id="lab1-exercise-7">lab1-exercise 7</h2>
+<blockquote>
+<p>Exercise 7. Use QEMU and GDB to trace into the JOS kernel and stop at the movl %eax, %cr0. Examine memory at 0x00100000 and at 0xf0100000. Now, single step over that instruction using the stepi GDB command. Again, examine memory at 0x00100000 and at 0xf0100000. Make sure you understand what just happened.</p>
+</blockquote>
+<blockquote>
+<p>What is the first instruction after the new mapping is established that would fail to work properly if the mapping weren't in place? Comment out the movl %eax, %cr0 in kern/entry.S, trace into it, and see if you were right.</p>
+</blockquote>
+<p>The key part of this exercise is here:</p>
+<pre class="gdb"><code>=&gt; 0x10001d:    mov    eax,cr0 //get the value of cr0
+=&gt; 0x100020:    or     eax,0x80010001 //set the value
+(gdb) x/8b 0x100000 // check the content of address 0x100000
+0x100000:   0x02    0xb0    0xad    0x1b    0x00    0x00    0x00    0x00
+(gdb) x/8b 0xf0100000 // check the content of address 0xf0100000
+0xf0100000 &lt;_start+4026531828&gt;: 0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+=&gt; 0x100025:    mov    cr0,eax // write the value back to cr0
+(gdb) x/8b 0xf0100000 // check the content of address 0xf0100000 again
+0xf0100000 &lt;_start+4026531828&gt;: 0x02    0xb0    0xad    0x1b    0x00    0x00    0x00    0x00</code></pre>
+<p><code>=&gt; 0x100020:   or     eax,0x80010001</code>, it set <code>bit0</code>, <code>bit16</code>, and <code>bit31</code>, which stands for <code>protected mode enable</code>, <code>write protect</code> and <code>paging</code> separately, you can check the function of these bits <a href="http://wiki.osdev.org/CPU_Registers_x86#CR0">here</a>.</p>
+<pre class="plain"><code>CR0
+bit label   description
+0   pe  protected mode enable
+1   mp  monitor co-processor
+2   em  emulation
+3   ts  task switched
+4   et  extension type
+5   ne  numeric error
+16  wp  write protect
+18  am  alignment mask
+29  nw  not-write through
+30  cd  cache disable
+31  pg  paging</code></pre>
+<p>When we use <code>objdump -h</code> to see the <code>VMA</code> and <code>LMA</code> about the kernel, we can see that the <code>VMA</code> is <code>0xf0100000</code> which means the program needs to run at the virtual address <code>0xf0100000</code>, and <code>LMA</code> is <code>0x100000</code>, which means the code, also the <code>.text</code> section of the kernel, is stored at address <code>0x100000</code>:</p>
+<pre class="plain"><code>james@ubuntu:~/MIT-JOS/lab1/obj/kern$ objdump -h kernel
+
+kernel:     file format elf32-i386
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         00001a17  f0100000  00100000  00001000  2**4
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE</code></pre>
+<p>And we can see the <code>page table</code> in the <code>kern/entrypgdir.c</code>, it includes 4MB memory in it.</p>
+<blockquote>
+<p>What is the first instruction after the new mapping is established that would fail to work properly if the mapping weren't in place? Comment out the movl %eax, %cr0 in kern/entry.S, trace into it, and see if you were right.</p>
+</blockquote>
+<p>If the mapping weren't in place, then <code>jmp *%eax</code> will crash the kernel, because when this instruction is executed, the eip has changed to <code>0xf010002f</code>:</p>
+<pre class="assembly"><code>=&gt; 0x10002d:    jmp    eax
+=&gt; 0xf010002f &lt;relocated&gt;:  mov    ebp,0x0 ; the eip has been changed
+relocated () at kern/entry.S:73
+73      movl    $0x0,%ebp           # nuke frame pointer
+=&gt; 0xf0100034 &lt;relocated+5&gt;:    mov    esp,0xf0110000
+relocated () at kern/entry.S:76</code></pre>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+</head>
+<body>
+<h2 id="lab1-exercise-2">lab1-exercise 2</h2>
+<blockquote>
+<p>Use GDB's si (Step Instruction) command to trace into the ROM BIOS for a few more instructions, and try to guess what it might be doing. You might want to look at Phil Storrs I/O Ports Description, as well as other materials on the 6.828 reference materials page. No need to figure out all the details - just the general idea of what the BIOS is doing first.</p>
+</blockquote>
+<!-- more -->
+
+<p>First of all, I would like to add this line in <code>~/.gdbinit</code> : <code>set disassembly-flavor intel</code>, this can make gdb use the Intel style assembly</p>
+<p>The BIOS mainly do two things: * 1. switch the mode to i386 * 2. transfer to the boot sector</p>
+<p>Let's trace step by step, I will make comments as well as I can:</p>
+<pre class="assembly"><code>[f000:fff0]    0xffff0: jmp    0xf000:0xe05b</code></pre>
+<p>At first, the target architecture is assumed to be i8086, and as we all know that i8086 can only reach memory of 1MB, as the layout below.</p>
+<p>The first instruction is <code>jmp 0xf000:0xe05b</code>, and it is in <code>[f000:fff0]</code>, which represents the address <code>0xffff0</code>, from the layout, we can see this address belongs to the top of BIOS ROM. Since there is no room for instructions at <code>0xffff0</code>, so the first instruction is to jump to <code>0xe05b</code>.</p>
+<pre class="plain"><code>                    +------------------+  &lt;- 0xFFFFFFFF (4GB)
+                    |      32-bit      |
+                    |  memory mapped   |
+                    |     devices      |
+                    |                  |
+                    /\/\/\/\/\/\/\/\/\/\
+
+                    /\/\/\/\/\/\/\/\/\/\
+                    |                  |
+                    |      Unused      |
+                    |                  |
+                    +------------------+  &lt;- depends on amount of RAM
+                    |                  |
+                    |                  |
+                    | Extended Memory  |
+                    |                  |
+                    |                  |
+                    +------------------+  &lt;- 0x00100000 (1MB)
+                    |     BIOS ROM     |
+                    +------------------+  &lt;- 0x000F0000 (960KB)
+                    |  16-bit devices, |
+                    |  expansion ROMs  |
+                    +------------------+  &lt;- 0x000C0000 (768KB)
+                    |   VGA Display    |
+                    +------------------+  &lt;- 0x000A0000 (640KB)
+                    |                  |
+                    |    Low Memory    |
+                    |                  |
+                    +------------------+  &lt;- 0x00000000
+</code></pre>
+<p>And then, we can see these instructions:</p>
+<pre class="assembly"><code>[f000:e05b]    0xfe05b: cmp    DWORD PTR cs:0x6574,0x0
+[f000:e062]    0xfe062: jne    0xfd2b6
+[f000:e066]    0xfe066: xor    ax,ax
+[f000:e068]    0xfe068: mov    ss,ax
+[f000:e06a]    0xfe06a: mov    esp,0x7000
+[f000:e070]    0xfe070: mov    edx,0xf3c24
+[f000:e076]    0xfe076: jmp    0xfd124
+[f000:d124]    0xfd124: mov    ecx,eax
+[f000:d127]    0xfd127: cli    ;clear interrupt flag
+[f000:d128]    0xfd128: cld    ;clear the direction flag</code></pre>
+<p>The BIOS then makes some preparations for next stage, such as reset the <code>ax</code> register and set the <code>esp</code> register.</p>
+<p>The important instructions here are cli and cld, it clear the flags, especially the cli instruction, it disable the interrupts so that the following instructions will not be interrupted. As for cld, it clears the direction flag, set it to 0, it means the memory will grow from low memory to high memory.</p>
+<pre class="assembly"><code>[f000:d129]    0xfd129: mov    eax,0x8f
+[f000:d12f]    0xfd12f: out    0x70,al
+[f000:d131]    0xfd131: in     al,0x71</code></pre>
+<p>The <code>out</code> and <code>in</code> instructions are used to communicate with hardware devices through certain port and the <code>eax/ax/al</code> register. * <code>in</code> means to read a <code>byte/word/dword</code> from certain port to <code>al/ax/eax</code> * <code>out</code> means to write a <code>byte/word/dword</code> to certain port from <code>al/ax/eax</code></p>
+<p>As for what the ports stand for, <a href="http://bochs.sourceforge.net/techspec/PORTS.LST">check it here</a>. From that link above, we can see the port 0x70 is the CMOS RAM index register port:</p>
+<pre class="plain"><code>0070    w   CMOS RAM index register port (ISA, EISA)
+         bit 7   = 1  NMI disabled
+             = 0  NMI enabled
+         bit 6-0      CMOS RAM index (64 bytes, sometimes 128 bytes)
+
+        any write to 0070 should be followed by an action to 0071
+        or the RTC wil be left in an unknown state.</code></pre>
+<p>Since <code>0x8f == 0b1000 1111</code>, we can learn that the NMI has been disabled, NMI stands for <code>non-maskable interrupt</code>, <a href="https://en.wikipedia.org/wiki/Non-maskable_interrupt">a non-maskable interrupt is a hardware interrupt that standard interrupt-masking techniques in the system cannot ignore. It typically occurs to signal attention for non-recoverable hardware errors</a>.</p>
+<p>This is also to make sure the following interrupt would not be interrupted.</p>
+<p>You may be confused about why <code>in al,0x71</code> and <code>in al,0x92</code> execute in a row, the value read from port 0x71 in <code>al</code> will be covered by the value read from port 0x92, you may find the answer <a href="http://stackoverflow.com/questions/42593957/bios-read-twice-from-different-port-to-the-same-register-in-a-row">here</a>. Note that <code>any write to 0070 should be followed by an action to 0071 or the RTC wil be left in an unknown state</code>, so this <code>in al, 0x71</code> is just to make RTC out of an unknown state.</p>
+<p>And then:</p>
+<pre class="assembly"><code>[f000:d133]    0xfd133: in     al,0x92
+[f000:d135]    0xfd135: or     al,0x2
+[f000:d137]    0xfd137: out    0x92,al</code></pre>
+<p>Also, we can check it <a href="http://bochs.sourceforge.net/techspec/PORTS.LST">here</a>, and this is all about port 0x92:</p>
+<pre class="plain"><code>0092    r/w PS/2 system control port A  (port B is at 0061)
+         bit 7-6   any bit set to 1 turns activity light on
+         bit 5     reserved
+         bit 4 = 1 watchdog timout occurred
+         bit 3 = 0 RTC/CMOS security lock (on password area) unlocked
+               = 1 CMOS locked (done by POST)
+         bit 2     reserved
+         bit 1 = 1 indicates A20 active
+         bit 0 = 0 system reset or write
+             1 pulse alternate reset pin (alternate CPU reset)</code></pre>
+<p>We can see that it set the bit1 to 1, so this can activate <a href="http://wiki.osdev.org/A20">Fast A20 Gate</a>.</p>
+<pre class="assembly"><code>[f000:d139]    0xfd139: lidtw  cs:0x6690
+[f000:d13f]    0xfd13f: lgdtw  cs:0x6650
+[f000:d145]    0xfd145: mov    eax,cr0
+[f000:d148]    0xfd148: or     eax,0x1
+[f000:d14c]    0xfd14c: mov    cr0,eax
+[f000:d14f]    0xfd14f: jmp    0x8:0xfd157
+The target architecture is assumed to be i386</code></pre>
+<p>The lidtw and lgdtw instructions load a linear base address and limit value from a six-byte data operand in memory into the GDTR(<a href="https://en.wikipedia.org/wiki/Global_Descriptor_Table">register for GDT</a>) or IDTR(<a href="https://en.wikipedia.org/wiki/Interrupt_descriptor_table">register for IDT</a>).</p>
+<p>And then, it set the bit0 of <code>cr0</code> to 1 so that the system will change to protected mode, check the meaning of each bit of <code>cr0</code> <a href="http://wiki.osdev.org/CPU_Registers_x86#CR0">here</a></p>
+<p>The instructions later is really hard to understand for me, so I would just stop here temporarily.</p>
+</body>
+</html>

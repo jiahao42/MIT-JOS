@@ -1,0 +1,51 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+</head>
+<body>
+<h2 id="lab1-exercise-6">lab1-exercise 6</h2>
+<blockquote>
+<p>Exercise 6. We can examine memory using GDB's x command. The GDB manual has full details, but for now, it is enough to know that the command x/Nx ADDR prints N words of memory at ADDR. (Note that both 'x's in the command are lowercase.) Warning: The size of a word is not a universal standard. In GNU assembly, a word is two bytes (the 'w' in xorw, which stands for word, means 2 bytes).</p>
+</blockquote>
+<blockquote>
+<p>Reset the machine (exit QEMU/GDB and start them again). Examine the 8 words of memory at 0x00100000 at the point the BIOS enters the boot loader, and then again at the point the boot loader enters the kernel. Why are they different? What is there at the second breakpoint? (You do not really need to use QEMU to answer this question. Just think.)</p>
+</blockquote>
+<p>At the point the BIOS enters the boot sector, the content at the address <code>0x00100000</code> is all zeros.</p>
+<p>At the point the boot loader enters the kernel, the content at the address <code>0x00100000</code> is the <code>.text</code> section in the kernel. The bootloader reads it using <code>readseg</code> after having read the header of the kernel.</p>
+<pre class="sourceCode C"><code class="sourceCode c"><span class="co">// load each program segment (ignores ph flags)</span>
+ph = (<span class="kw">struct</span> Proghdr *) ((<span class="dt">uint8_t</span> *) ELFHDR + ELFHDR-&gt;e_phoff);
+eph = ph + ELFHDR-&gt;e_phnum;
+<span class="kw">for</span> (; ph &lt; eph; ph++)
+  <span class="co">// p_pa is the load address of this segment (as well</span>
+  <span class="co">// as the physical address)</span>
+  <span class="co">/*</span>
+<span class="co">   * p_pa = 0x100000 p_memsz = 0x72ca p_offset = 0x1000</span>
+<span class="co">   * which means to read 0x72ca bytes(Size in bytes of the segment in memory) to 0x100000 from No.((offset / SECTSIZE) + 1) sector.</span>
+<span class="co">   */</span>
+  readseg(ph-&gt;p_pa, ph-&gt;p_memsz, ph-&gt;p_offset);</code></pre>
+</body>
+</html>
