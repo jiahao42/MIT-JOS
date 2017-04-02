@@ -1,24 +1,24 @@
-### lab1-exercise 8
+## lab1-exercise 8
 
 > Exercise 8. We have omitted a small fragment of code - the code necessary to print octal numbers using patterns of the form "%o". Find and fill in this code fragment.
 
 ---
 
-#### Be able to answer the following questions:
+### Be able to answer the following questions:
 
-**1. Explain the interface between printf.c and console.c. Specifically, what function does console.c export? How is this function used by printf.c?**
+####1. Explain the interface between printf.c and console.c. Specifically, what function does console.c export? How is this function used by printf.c?
 
 * console.c
 
 First, let's focus on `General device-independent console code` starts from line 376 in `console.c`, because this is much better to understand without too much detail with the hardwares.
-A struct is used to represent the circular input buffer of console:
+A struct is used to represent the circular input buffer of console, check circular buffer [here](https://en.wikipedia.org/wiki/Circular_buffer):
 
 ```C
 #define CONSBUFSIZE 512
 static struct {
 	uint8_t buf[CONSBUFSIZE];
-	uint32_t rpos;
-	uint32_t wpos;
+	uint32_t rpos; // read position
+	uint32_t wpos; // write position
 } cons;
 ```
 And here comes a function `static void cons_intr(int (*proc)(void))`, we can see that a function is passed to `cons_intr` through [function pointer](https://en.wikipedia.org/wiki/Function_pointer). `serial_intr(void)` and `kbd_intr(void)` invoke `cons_intr`.
@@ -70,13 +70,15 @@ Now we can see what `serial_proc_data(void)` does.
 Also, we can see what `cons_intr` does, when the parameter is `int serial_proc_data(void)`, basically, it write data which is read from port `03F8` to the struct `cons`.
 
 **Now let's turn to `void kbd_intr(void)` to see what happens.**
-`kbd_intr` passes `int kbd_proc_data(void)` as the parameter to the `cons_intr`, as the name `kbd_proc_data` indicates, this function is used to process the character read from keyboard, and return the character. `kbd_proc_data` is very interesting, you can see how `CapsLock` and `Ctrl + Alt + Del` work here, and I am sure [this material](https://www.win.tue.nl/~aeb/linux/kbd/scancodes-1.html) will help it.
+`kbd_intr` passes `int kbd_proc_data(void)` as the parameter to the `cons_intr`, as the name `kbd_proc_data` indicates, this function is used to process the character read from keyboard, and return the character. `kbd_proc_data` is very charming, you can see how `CapsLock` and `Ctrl + Alt + Del` work here, and I am sure [this material](https://www.win.tue.nl/~aeb/linux/kbd/scancodes-1.html) will help a lot.
 
-**And now we can see what `cons_intr` does, it reads character from serial and keyboard, and write characters to the buffer, maintaining the circular input buffer of console at the same time.**
+**Now we can look back to see what `cons_intr` dose.** 
+Basically, it reads character from serial(using `serial_proc_data`) and keyboard(using `kbd_proc_data`), and write characters to the buffer, maintaining the circular input buffer of console at the same time.
 
 ```C
-static void
-cons_intr(int (*proc)(void))
+// called by device interrupt routines to feed input characters
+// into the circular console input buffer.
+static void cons_intr(int (*proc)(void))
 {
 	int c;
 
@@ -90,7 +92,29 @@ cons_intr(int (*proc)(void))
 }
 ```
 
+**Here comes the next function I am going to talk about `int cons_getc(void)`**
 
+Different from `cons_intr` we have talked about before, on the contrary, `cons_getc` is used for reading characters from the circular input buffer of console, not writing to it.
+
+```C
+// return the next input character from the console, or 0 if none waiting
+int cons_getc(void)
+{
+	int c;
+
+	serial_intr();
+	kbd_intr();
+
+	// grab the next character from the input buffer.
+	if (cons.rpos != cons.wpos) { // if rpos == wpos, the buffer is empty
+		c = cons.buf[cons.rpos++];
+		if (cons.rpos == CONSBUFSIZE) // restart from start of buffer
+			cons.rpos = 0;
+		return c;
+	}
+	return 0; // return 0 if buffer is empty
+}
+```
 
 
 
@@ -119,7 +143,7 @@ And as the comments above show, these functions are implemented in `lib/printfmt
 ---
 
 
-**2. Explain the following from console.c:**
+#### 2. Explain the following from console.c:
 
 ```C
 1      if (crt_pos >= CRT_SIZE) {
@@ -133,8 +157,8 @@ And as the comments above show, these functions are implemented in `lib/printfmt
 
 ---
 
-**3. For the following questions you might wish to consult the notes for Lecture 2. These notes cover GCC's calling convention on the x86.
-Trace the execution of the following code step-by-step:**
+#### 3. For the following questions you might wish to consult the notes for Lecture 2. These notes cover GCC's calling convention on the x86.
+Trace the execution of the following code step-by-step:
 
 ```C
 int x = 1, y = 3, z = 4;
@@ -145,7 +169,7 @@ cprintf("x %d, y %x, z %d\n", x, y, z);
 
 ---
 
-**4. Run the following code.**
+#### 4. Run the following code.
 
 ```C
     unsigned int i = 0x00646c72;
@@ -160,7 +184,7 @@ Here's a description of [little- and big-endian](http://www.webopedia.com/TERM/B
 
 ---
 
-**5. In the following code, what is going to be printed after 'y='? (note: the answer is not a specific value.) Why does this happen?**
+#### 5. In the following code, what is going to be printed after 'y='? (note: the answer is not a specific value.) Why does this happen?
 
 ```C
     cprintf("x=%d y=%d", 3);
@@ -168,8 +192,8 @@ Here's a description of [little- and big-endian](http://www.webopedia.com/TERM/B
 
 ---
 
-**6. Let's say that GCC changed its calling convention so that it pushed arguments on the stack in declaration order, so that the last argument is pushed last. How would you have to change cprintf or its interface so that it would still be possible to pass it a variable number of arguments?**
+#### 6. Let's say that GCC changed its calling convention so that it pushed arguments on the stack in declaration order, so that the last argument is pushed last. How would you have to change cprintf or its interface so that it would still be possible to pass it a variable number of arguments?
 
 ---
 
-**7. Challenge Enhance the console to allow text to be printed in different colors. The traditional way to do this is to make it interpret [ANSI escape sequences](http://www.dee.ufcg.edu.br/~rrbrandt/tools/ansi.html) embedded in the text strings printed to the console, but you may use any mechanism you like. There is plenty of information on [the 6.828 reference page](https://pdos.csail.mit.edu/6.828/2011/reference.html) and elsewhere on the web on programming the VGA display hardware. If you're feeling really adventurous, you could try switching the VGA hardware into a graphics mode and making the console draw text onto the graphical frame buffer.**
+#### 7. Challenge Enhance the console to allow text to be printed in different colors. The traditional way to do this is to make it interpret [ANSI escape sequences](http://www.dee.ufcg.edu.br/~rrbrandt/tools/ansi.html) embedded in the text strings printed to the console, but you may use any mechanism you like. There is plenty of information on [the 6.828 reference page](https://pdos.csail.mit.edu/6.828/2011/reference.html) and elsewhere on the web on programming the VGA display hardware. If you're feeling really adventurous, you could try switching the VGA hardware into a graphics mode and making the console draw text onto the graphical frame buffer.
