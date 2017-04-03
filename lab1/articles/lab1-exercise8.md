@@ -116,6 +116,12 @@ int cons_getc(void)
 }
 ```
 
+And finally I decide to simply list the function of the functions left in `console.c`: 
+**`static void cons_putc(int c)` : output a character to the console, including CGA, keyboard and serial.**
+**`void cons_init(void)` : initialize the console devices, including CGA, keyboard and serial.**
+**`void cputchar(int c)` : a wrap of `static void cons_putc(int c)`, same function.**
+**int getchar(void)` : invokes `int cons_getc(void)`, grab character from buffer, if the buffer is empty and 0 returns, wait until a character returns.**
+**int iscons(int fdnum)` : I'm not sure what this is used for, I think it receives a file descriptor and return if it is a console, buf I did not see any code but `return 1` in this function, can't figure out why for now.**
 
 
 
