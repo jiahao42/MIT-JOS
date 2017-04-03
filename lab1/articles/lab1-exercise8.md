@@ -160,7 +160,7 @@ According to the comments from the top of `print.c`:
 
 * ### print.c && printfmt.c
 
-First, let's see how `int cprintf(const char *fmt, ...)` works, you need to know the [usage of variable argument](http://www.cprogramming.com/tutorial/c/lesson17.html):
+First, let's see how `int cprintf(const char *fmt, ...)` works, you need to know the [usage of variable argument](http://www.cprogramming.com/tutorial/c/lesson17.html) and the [layout of va](http://stackoverflow.com/questions/12371450/how-are-variable-arguments-implemented-in-gcc):
 
 ```C
 static void putch(int ch, int *cnt)
@@ -386,6 +386,34 @@ Apprently, the result is `He110 World`. `He110` is easy to explain, because `576
 ```C
     cprintf("x=%d y=%d", 3);
 ```
+
+It will output a "random" value, actually it is the value adjacent to `0x00000003` , we can make a little test.
+
+```C
+int main()
+{
+	printf("x=%d y=%d", 3);
+}
+```
+
+Test it in gdb, and we can see things below:
+
+```gdb
+(gdb) s
+_IO_vfprintf_internal (s=0xb7fbdac0 <_IO_2_1_stdout_>, 
+    format=format@entry=0x80484e0 "x=%d y=%d", ap=ap@entry=0xbffff124 "\003")
+    at vfprintf.c:235
+235	vfprintf.c: No such file or directory.
+(gdb) x/4b ap
+0xbffff124:	0x03	0x00	0x00	0x00
+(gdb) x/4b ap+4
+0xbffff128:	0x5b	0x84	0x04	0x08
+(gdb) c
+Continuing.
+x=3 y=134513755
+```
+
+The value of y, 134513755, is `0x‭0804845B‬` in hex, which is the value of `ap+4`, I am not sure what the value is used for, but I know it's a undefined behavior which we need to avoid.
 
 ---
 
