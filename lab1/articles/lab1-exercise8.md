@@ -6,9 +6,9 @@
 
 ### Be able to answer the following questions:
 
-####1. Explain the interface between printf.c and console.c. Specifically, what function does console.c export? How is this function used by printf.c?
+### 1. Explain the interface between printf.c and console.c. Specifically, what function does console.c export? How is this function used by printf.c?
 
-* console.c
+* ### console.c
 
 First, let's focus on `General device-independent console code` starts from line 376 in `console.c`, because this is much better to understand without too much detail with the hardwares.
 A struct is used to represent the circular input buffer of console, check circular buffer [here](https://en.wikipedia.org/wiki/Circular_buffer):
@@ -72,7 +72,7 @@ Also, we can see what `cons_intr` does, when the parameter is `int serial_proc_d
 **Now let's turn to `void kbd_intr(void)` to see what happens.**
 `kbd_intr` passes `int kbd_proc_data(void)` as the parameter to the `cons_intr`, as the name `kbd_proc_data` indicates, this function is used to process the character read from keyboard, and return the character. `kbd_proc_data` is very charming, you can see how `CapsLock` and `Ctrl + Alt + Del` work here, and I am sure [this material](https://www.win.tue.nl/~aeb/linux/kbd/scancodes-1.html) will help a lot.
 
-**Now we can look back to see what `cons_intr` dose.** 
+**Now we can look back to see what `cons_intr` does.** 
 Basically, it reads character from serial(using `serial_proc_data`) and keyboard(using `kbd_proc_data`), and write characters to the buffer, maintaining the circular input buffer of console at the same time.
 
 ```C
@@ -117,17 +117,22 @@ int cons_getc(void)
 ```
 
 And finally I decide to simply list the function of the functions left in `console.c`: 
-**`static void cons_putc(int c)` : output a character to the console, including CGA, keyboard and serial.**
-**`void cons_init(void)` : initialize the console devices, including CGA, keyboard and serial.**
-**`void cputchar(int c)` : a wrap of `static void cons_putc(int c)`, same function.**
-**int getchar(void)` : invokes `int cons_getc(void)`, grab character from buffer, if the buffer is empty and 0 returns, wait until a character returns.**
-**int iscons(int fdnum)` : I'm not sure what this is used for, I think it receives a file descriptor and return if it is a console, buf I did not see any code but `return 1` in this function, can't figure out why for now.**
+
+* **`static void cons_putc(int c)` :** output a character to the console, including CGA, keyboard and serial.
+
+* **`void cons_init(void)` :** initialize the console devices, including CGA, keyboard and serial.
+
+* **`void cputchar(int c)` :** a wrap of `static void cons_putc(int c)`, same function.
+
+* **`int getchar(void)` :** invokes `int cons_getc(void)`, grab character from buffer, if the buffer is empty and 0 returns, wait until a character returns.
+
+* **`int iscons(int fdnum)` :** I'm not sure what this is used for, I think it receives a file descriptor and return if it is a console, buf I did not see any code but `return 1` in this function, can't figure out why for now.
 
 
 
 
 
-* stdio.h
+* ### stdio.h
 
 Second, `inc/stdio.h` declares a series of `printf`, such as:
 
@@ -143,13 +148,22 @@ int	cprintf(const char *fmt, ...);
 int	vcprintf(const char *fmt, va_list);
 ```
 
-And as the comments above show, these functions are implemented in `lib/printfmt.c` and `lib/printf.c`.
+And as the comments above show, these functions are implemented in some files at `lib` folder, so I am going to check those files.
+
+However, there are some strange things:
+* `lib/stdio.c` doesn't exist.
+* `printf.c` is not in `lib`, it is in `kern` folder instead.
+* `fprintf.c` doesn't exist.
+
+So I decide to check `lib/printfmt` first.
+
+* ### printfmt.c
 
 
 ---
 
 
-#### 2. Explain the following from console.c:
+### 2. Explain the following from console.c:
 
 ```C
 1      if (crt_pos >= CRT_SIZE) {
@@ -163,7 +177,7 @@ And as the comments above show, these functions are implemented in `lib/printfmt
 
 ---
 
-#### 3. For the following questions you might wish to consult the notes for Lecture 2. These notes cover GCC's calling convention on the x86.
+### 3. For the following questions you might wish to consult the notes for Lecture 2. These notes cover GCC's calling convention on the x86.
 Trace the execution of the following code step-by-step:
 
 ```C
@@ -175,7 +189,7 @@ cprintf("x %d, y %x, z %d\n", x, y, z);
 
 ---
 
-#### 4. Run the following code.
+### 4. Run the following code.
 
 ```C
     unsigned int i = 0x00646c72;
@@ -190,7 +204,7 @@ Here's a description of [little- and big-endian](http://www.webopedia.com/TERM/B
 
 ---
 
-#### 5. In the following code, what is going to be printed after 'y='? (note: the answer is not a specific value.) Why does this happen?
+### 5. In the following code, what is going to be printed after 'y='? (note: the answer is not a specific value.) Why does this happen?
 
 ```C
     cprintf("x=%d y=%d", 3);
@@ -198,8 +212,8 @@ Here's a description of [little- and big-endian](http://www.webopedia.com/TERM/B
 
 ---
 
-#### 6. Let's say that GCC changed its calling convention so that it pushed arguments on the stack in declaration order, so that the last argument is pushed last. How would you have to change cprintf or its interface so that it would still be possible to pass it a variable number of arguments?
+### 6. Let's say that GCC changed its calling convention so that it pushed arguments on the stack in declaration order, so that the last argument is pushed last. How would you have to change cprintf or its interface so that it would still be possible to pass it a variable number of arguments?
 
 ---
 
-#### 7. Challenge Enhance the console to allow text to be printed in different colors. The traditional way to do this is to make it interpret [ANSI escape sequences](http://www.dee.ufcg.edu.br/~rrbrandt/tools/ansi.html) embedded in the text strings printed to the console, but you may use any mechanism you like. There is plenty of information on [the 6.828 reference page](https://pdos.csail.mit.edu/6.828/2011/reference.html) and elsewhere on the web on programming the VGA display hardware. If you're feeling really adventurous, you could try switching the VGA hardware into a graphics mode and making the console draw text onto the graphical frame buffer.
+### 7. Challenge Enhance the console to allow text to be printed in different colors. The traditional way to do this is to make it interpret [ANSI escape sequences](http://www.dee.ufcg.edu.br/~rrbrandt/tools/ansi.html) embedded in the text strings printed to the console, but you may use any mechanism you like. There is plenty of information on [the 6.828 reference page](https://pdos.csail.mit.edu/6.828/2011/reference.html) and elsewhere on the web on programming the VGA display hardware. If you're feeling really adventurous, you could try switching the VGA hardware into a graphics mode and making the console draw text onto the graphical frame buffer.
