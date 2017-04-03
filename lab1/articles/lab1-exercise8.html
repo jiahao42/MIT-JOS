@@ -325,9 +325,23 @@ cprintf(<span class="st">&quot;x %d, y %x, z %d</span><span class="ch">\n</span>
 <h3 id="run-the-following-code.">4. Run the following code.</h3>
 <pre class="sourceCode C"><code class="sourceCode c">    <span class="dt">unsigned</span> <span class="dt">int</span> i = <span class="bn">0x00646c72</span>;
     cprintf(<span class="st">&quot;H%x Wo%s&quot;</span>, <span class="dv">57616</span>, &amp;i);</code></pre>
-<p><strong>What is the output? Explain how this output is arrived at in the step-by-step manner of the previous exercise. Here's an ASCII table that maps bytes to characters.</strong></p>
+<p><strong>What is the output? Explain how this output is arrived at in the step-by-step manner of the previous exercise. Here's an <a href="http://docs.linuxtone.org/ebooks/C&amp;CPP/c/apas01.html">ASCII table</a> that maps bytes to characters.</strong></p>
+<blockquote>
 <p>The output depends on that fact that the x86 is little-endian. If the x86 were instead big-endian what would you set i to in order to yield the same output? Would you need to change 57616 to a different value?</p>
+</blockquote>
+<blockquote>
 <p>Here's a description of <a href="http://www.webopedia.com/TERM/B/big_endian.html">little- and big-endian</a> and <a href="http://www.networksorcery.com/enp/ien/ien137.txt">a more whimsical description</a>.</p>
+</blockquote>
+<p>First, we can add these code above to <code>kern/monitor.c</code>:</p>
+<div class="figure">
+<img src="https://raw.githubusercontent.com/Jameeeees/MIT-JOS/master/lab1/articles/ex8_monitor.png" />
+</div>
+<p>And we can see the result of execution:</p>
+<div class="figure">
+<img src="https://raw.githubusercontent.com/Jameeeees/MIT-JOS/master/lab1/articles/ex8_monitor_result.png" />
+</div>
+<p>Apprently, the result is <code>He110 World</code>. <code>He110</code> is easy to explain, because <code>57616</code> in decimal is <code>e110</code> in hex, but how about <code>World</code> ?</p>
+<p><code>0x00646c72</code> in little-endian machine is stored as <code>0x72 0x6c 0x64 0x00</code> which is <code>'r' 'l' 'd' '\0'</code> in ASCII, and when <code>cprintf</code> reads the <code>0x72 0x6c 0x64 0x00</code>, it will output as <code>rld</code>.</p>
 <hr />
 <h3 id="in-the-following-code-what-is-going-to-be-printed-after-y-note-the-answer-is-not-a-specific-value.-why-does-this-happen">5. In the following code, what is going to be printed after 'y='? (note: the answer is not a specific value.) Why does this happen?</h3>
 <pre class="sourceCode C"><code class="sourceCode c">    cprintf(<span class="st">&quot;x=%d y=%d&quot;</span>, <span class="dv">3</span>);</code></pre>

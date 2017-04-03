@@ -119,6 +119,7 @@ monitor(struct Trapframe *tf)
 
     unsigned int i = 0x00646c72;
     cprintf("H%x Wo%s", 57616, &i);
+	cprintf("\n");
 
 	while (1) {
 		buf = readline("K> ");

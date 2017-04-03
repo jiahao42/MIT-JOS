@@ -360,11 +360,24 @@ cprintf("x %d, y %x, z %d\n", x, y, z);
     cprintf("H%x Wo%s", 57616, &i);
 ```
 
-**What is the output? Explain how this output is arrived at in the step-by-step manner of the previous exercise. Here's an ASCII table that maps bytes to characters.**
+**What is the output? Explain how this output is arrived at in the step-by-step manner of the previous exercise. Here's an [ASCII table](http://docs.linuxtone.org/ebooks/C&CPP/c/apas01.html) that maps bytes to characters.**
 
-The output depends on that fact that the x86 is little-endian. If the x86 were instead big-endian what would you set i to in order to yield the same output? Would you need to change 57616 to a different value?
+> The output depends on that fact that the x86 is little-endian. If the x86 were instead big-endian what would you set i to in order to yield the same output? Would you need to change 57616 to a different value?
 
-Here's a description of [little- and big-endian](http://www.webopedia.com/TERM/B/big_endian.html) and [a more whimsical description](http://www.networksorcery.com/enp/ien/ien137.txt).
+> Here's a description of [little- and big-endian](http://www.webopedia.com/TERM/B/big_endian.html) and [a more whimsical description](http://www.networksorcery.com/enp/ien/ien137.txt).
+
+First, we can add these code above to `kern/monitor.c`:
+
+![](https://raw.githubusercontent.com/Jameeeees/MIT-JOS/master/lab1/articles/ex8_monitor.png)
+
+And we can see the result of execution:
+
+![](https://raw.githubusercontent.com/Jameeeees/MIT-JOS/master/lab1/articles/ex8_monitor_result.png)
+
+Apprently, the result is `He110 World`. `He110` is easy to explain, because `57616` in decimal is `e110` in hex, but how about `World` ?
+
+`0x00646c72` in little-endian machine is stored as `0x72 0x6c 0x64 0x00` which is `'r' 'l' 'd' '\0'` in ASCII, and when `cprintf` reads the `0x72 0x6c 0x64 0x00`, it will output as `rld`.
+
 
 ---
 
