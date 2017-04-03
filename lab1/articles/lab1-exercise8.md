@@ -194,6 +194,8 @@ Apprently, the code in `print.c` basically processes the variable arguments, and
 
 **The main skeleton of `vprintfmt` :**
 
+#### Attention: the omitted fragment of code is here, we are going to solve exercise8 right now!!!
+
 ```C
 while (1) {
 	while ((ch = *(unsigned char *) fmt++) != '%') { // if it is not a format sign, just output it to the console
@@ -211,8 +213,11 @@ while (1) {
 			...
 		case 's':
 			...
-		case 'o':
-			...
+		case 'o': // here is where we need to fix in exercise8
+			num = getuint(&ap, lflag);
+			base = 8;
+			goto number;
+			break;
 		...
 	}
 }
@@ -226,6 +231,13 @@ while (1) {
 ### Be able to answer the following questions:
 
 ### 1. Explain the interface between printf.c and console.c. Specifically, what function does console.c export? How is this function used by printf.c?
+
+`console.c` exports three **'High'-level console I/O** function:
+* `void cputchar(int c)`
+* `int getchar(void)` 
+*  `int iscons(int fdnum)`
+
+`static void putch(int ch, int *cnt)` in `print.c` uses `cputchar` to output characters to the console.
 
 ---
 
