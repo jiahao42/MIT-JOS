@@ -163,7 +163,7 @@ static void
 cga_putc(int c)
 {
 	// if no attribute given, then use black on white
-	if (!(c & ~0xFF))
+	if (!(c & ~0xFF)) // if (c && 0xFFFFFF00 != 0) ==> if (c <= 0xFF)
 		c |= 0x0700;
 
 	switch (c & 0xff) {
@@ -194,7 +194,6 @@ cga_putc(int c)
 	// What is the purpose of this?
 	if (crt_pos >= CRT_SIZE) {
 		int i;
-
 		memmove(crt_buf, crt_buf + CRT_COLS, (CRT_SIZE - CRT_COLS) * sizeof(uint16_t));
 		for (i = CRT_SIZE - CRT_COLS; i < CRT_SIZE; i++)
 			crt_buf[i] = 0x0700 | ' ';

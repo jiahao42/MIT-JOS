@@ -254,6 +254,28 @@ while (1) {
 7      }
 ```
 
+First, let's find the definition of `CRT` stuff in `console.h`:
+
+```C
+#define CRT_ROWS	25
+#define CRT_COLS	80
+#define CRT_SIZE	(CRT_ROWS * CRT_COLS)
+```
+
+We should be aware that the `CRT` refers to the console, so, the macro above means that the console has 25 rows and 80 columns, and can display 2000 characters in total.
+
+So now we can see what `if (crt_pos >= CRT_SIZE)` means, it means if the current position of console is greater than the size of console. In  old console, it doesn't scrollbar like nowadays, so the content of console must move upward so that a new line can be created.
+
+```C
+1      if (crt_pos >= CRT_SIZE) { // if the position meet the end of console
+2              int i;
+3              memcpy(crt_buf, crt_buf + CRT_COLS, (CRT_SIZE - CRT_COLS) * sizeof(uint16_t)); // move the whole content one line above, so that a new line is created on the console
+4              for (i = CRT_SIZE - CRT_COLS; i < CRT_SIZE; i++) // fill the new line with whitespace
+5                      crt_buf[i] = 0x0700 | ' ';
+6              crt_pos -= CRT_COLS; // relocate the position
+7      }
+```
+
 ---
 
 ### 3. For the following questions you might wish to consult the notes for Lecture 2. These notes cover GCC's calling convention on the x86.
