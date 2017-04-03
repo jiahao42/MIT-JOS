@@ -233,6 +233,7 @@ while (1) {
 ### 1. Explain the interface between printf.c and console.c. Specifically, what function does console.c export? How is this function used by printf.c?
 
 `console.c` exports three **'High'-level console I/O** function:
+
 * `void cputchar(int c)`
 * `int getchar(void)` 
 *  `int iscons(int fdnum)`
@@ -292,6 +293,9 @@ cprintf("x %d, y %x, z %d\n", x, y, z);
 
 * List (in order of execution) each call to cons_putc, va_arg, and vcprintf. For cons_putc, list its argument as well. For va_arg, list what ap points to before and after the call. For vcprintf list the values of its two arguments.
 
+	* **I will list most function which will be called during the execution of the code above in sequence, and replace the parameter with the actual value**
+		* **--> means the sequence of execution**
+		* **=> means equivalent**
 	* int cprintf("x %d, y %x, z %d\n", x, y, z)
 	* int vcprintf("x %d, y %x, z %d\n", {x, y, z})
 	* void vprintfmt(putch(), 0, "x %d, y %x, z %d\n", {x, y, z}) --> `while ((ch = *(unsigned char *) fmt++) != '%')` --> ch == 'x'
@@ -340,12 +344,13 @@ cprintf("x %d, y %x, z %d\n", x, y, z);
 	* case 'd' 
 		* static long long getint({z}, 0) --> `return va_arg(*ap, int)` => return z => return 4
 		* goto number --> printnum(putch(), 12, 4, 10, -1, ' ') --> putch('4', 12)
-	* void vprintfmt(putch(), 13, "x %d, y %x, z %d\n", {}) --> `while ((ch = *(unsigned char *) fmt++) != '%')` --> ch == '\n'
-	* static void putch('\n', 13)
-		* void cputchar('\n')
-		* void cons_putc('\n')
-		* cga_putc('\n') -- > `case '\n': crt_pos += CRT_COLS;`
-		
+	* void vprintfmt(putch(), 13, "x %d, y %x, z %d\n", {}) --> `while ((ch = *(unsigned char *) fmt++) != '%')` --> ch == '\\n'
+	* static void putch('\\n', 13)
+		* void cputchar('\\n')
+		* void cons_putc('\\n')
+			* static void cga_putc('\\n') -- > `case '\\n': crt_pos += CRT_COLS;`
+	* **Finally, `"x %d, y %x, z %d\\n", x, y, z` is printed as `x 1, y 3, z 4`, `cprintf` return 14 because there are 14 byte printed to the console(including '\\n').**
+	
 ---
 
 ### 4. Run the following code.
@@ -359,7 +364,7 @@ cprintf("x %d, y %x, z %d\n", x, y, z);
 
 The output depends on that fact that the x86 is little-endian. If the x86 were instead big-endian what would you set i to in order to yield the same output? Would you need to change 57616 to a different value?
 
-Here's a description of [little- and big-endian](http://www.webopedia.com/TERM/B/big_endian.html) and [a more whimsical description](http://www.networksorcery.com/enp/ien/ien137.txt).**
+Here's a description of [little- and big-endian](http://www.webopedia.com/TERM/B/big_endian.html) and [a more whimsical description](http://www.networksorcery.com/enp/ien/ien137.txt).
 
 ---
 

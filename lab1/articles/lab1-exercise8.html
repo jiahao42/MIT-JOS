@@ -203,7 +203,12 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <hr />
 <h3 id="be-able-to-answer-the-following-questions">Be able to answer the following questions:</h3>
 <h3 id="explain-the-interface-between-printf.c-and-console.c.-specifically-what-function-does-console.c-export-how-is-this-function-used-by-printf.c">1. Explain the interface between printf.c and console.c. Specifically, what function does console.c export? How is this function used by printf.c?</h3>
-<p><code>console.c</code> exports three <strong>'High'-level console I/O</strong> function: * <code>void cputchar(int c)</code> * <code>int getchar(void)</code> * <code>int iscons(int fdnum)</code></p>
+<p><code>console.c</code> exports three <strong>'High'-level console I/O</strong> function:</p>
+<ul>
+<li><code>void cputchar(int c)</code></li>
+<li><code>int getchar(void)</code></li>
+<li><code>int iscons(int fdnum)</code></li>
+</ul>
 <p><code>static void putch(int ch, int *cnt)</code> in <code>print.c</code> uses <code>cputchar</code> to output characters to the console.</p>
 <hr />
 <h3 id="explain-the-following-from-console.c">2. Explain the following from console.c:</h3>
@@ -233,29 +238,87 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <pre class="sourceCode C"><code class="sourceCode c"><span class="dt">int</span> x = <span class="dv">1</span>, y = <span class="dv">3</span>, z = <span class="dv">4</span>;
 cprintf(<span class="st">&quot;x %d, y %x, z %d</span><span class="ch">\n</span><span class="st">&quot;</span>, x, y, z);</code></pre>
 <ul>
-<li><p>In the call to <code>cprintf()</code>, to what does <code>fmt</code> point? To what does <code>ap</code> point?</p>
+<li>In the call to <code>cprintf()</code>, to what does <code>fmt</code> point? To what does <code>ap</code> point?
 <ul>
-<li><code>fmt</code> points to <code>&quot;x %d, y %x, z %d\n&quot;</code>.</li>
-<li><code>ap</code> points to <code>x, y, z</code>.</li>
+<li><a href="http://stackoverflow.com/questions/12371450/how-are-variable-arguments-implemented-in-gcc">How are variable arguments implemented in gcc?</a></li>
+<li><code>fmt</code> points to address of <code>&quot;x %d, y %x, z %d\n&quot;</code>.</li>
+<li><code>ap</code> points to address of <code>x</code>.</li>
 </ul></li>
 <li><p>List (in order of execution) each call to cons_putc, va_arg, and vcprintf. For cons_putc, list its argument as well. For va_arg, list what ap points to before and after the call. For vcprintf list the values of its two arguments.</p>
 <ul>
+<li><strong>I will list most function which will be called during the execution of the code above in sequence, and replace the parameter with the actual value</strong>
+<ul>
+<li><strong>--&gt; means the sequence of execution</strong></li>
+<li><strong>=&gt; means equivalent</strong></li>
+</ul></li>
 <li>int cprintf(&quot;x %d, y %x, z %d&quot;, x, y, z)</li>
 <li>int vcprintf(&quot;x %d, y %x, z %d&quot;, {x, y, z})</li>
 <li>void vprintfmt(putch(), 0, &quot;x %d, y %x, z %d&quot;, {x, y, z}) --&gt; <code>while ((ch = *(unsigned char *) fmt++) != '%')</code> --&gt; ch == 'x'</li>
-<li>static void putch('x', 0)</li>
+<li>static void putch('x', 0)
+<ul>
 <li>void cputchar('x')</li>
 <li>static void cons_putc('x')
 <ul>
-<li>serial_putc('x');</li>
-<li>lpt_putc('x');</li>
-<li>cga_putc('x');</li>
+<li>serial_putc('x')</li>
+<li>lpt_putc('x')</li>
+<li>cga_putc('x')</li>
 </ul></li>
-<li>void vprintfmt(putch(), 0, &quot;x %d, y %x, z %d&quot;, {x, y, z}) --&gt; <code>while ((ch = *(unsigned char *) fmt++) != '%')</code> --&gt; ch == ' '</li>
-<li>static void putch(' ', 0)</li>
+</ul></li>
+<li>void vprintfmt(putch(), 1, &quot;x %d, y %x, z %d&quot;, {y, z}) --&gt; <code>while ((ch = *(unsigned char *) fmt++) != '%')</code> --&gt; ch == ' '</li>
+<li>static void putch(' ', 1)</li>
 <li>...</li>
-<li>void vprintfmt(putch(), 0, &quot;x %d, y %x, z %d&quot;, {x, y, z}) --&gt; <code>while ((ch = *(unsigned char *) fmt++) != '%')</code> --&gt; ch == '%'</li>
-<li>case 'd'</li>
+<li>void vprintfmt(putch(), 2, &quot;x %d, y %x, z %d&quot;, {y, z}) --&gt; <code>while ((ch = *(unsigned char *) fmt++) != '%')</code> --&gt; ch == '%'</li>
+<li>case 'd'
+<ul>
+<li>static long long getint({x, y, z}, 0) --&gt; <code>return va_arg(*ap, int)</code> =&gt; return x =&gt; return 1</li>
+<li>goto number --&gt; printnum(putch(), 2, 1, 10, -1, ' ') --&gt; putch('1', 2)</li>
+</ul></li>
+<li>void vprintfmt(putch(), 3, &quot;x %d, y %x, z %d&quot;, {y, z}) --&gt; <code>while ((ch = *(unsigned char *) fmt++) != '%')</code> --&gt; ch == ','</li>
+<li>static void putch(',', 3)</li>
+<li>...</li>
+<li>void vprintfmt(putch(), 4, &quot;x %d, y %x, z %d&quot;, {y, z}) --&gt; <code>while ((ch = *(unsigned char *) fmt++) != '%')</code> --&gt; ch == ' '</li>
+<li>static void putch(' ', 4)</li>
+<li>...</li>
+<li>void vprintfmt(putch(), 5, &quot;x %d, y %x, z %d&quot;, {y, z}) --&gt; <code>while ((ch = *(unsigned char *) fmt++) != '%')</code> --&gt; ch == 'y'</li>
+<li>static void putch('y', 5)</li>
+<li>...</li>
+<li>void vprintfmt(putch(), 6, &quot;x %d, y %x, z %d&quot;, {y, z}) --&gt; <code>while ((ch = *(unsigned char *) fmt++) != '%')</code> --&gt; ch == ' '</li>
+<li>static void putch(' ', 6)</li>
+<li>...</li>
+<li>void vprintfmt(putch(), 7, &quot;x %d, y %x, z %d&quot;, {y, z}) --&gt; <code>while ((ch = *(unsigned char *) fmt++) != '%')</code> --&gt; ch == '%'</li>
+<li>case 'x'
+<ul>
+<li>static unsigned long long getuint({y, z}, 0) --&gt; <code>return va_arg(*ap, int)</code> =&gt; return y =&gt; return 3</li>
+<li>goto number --&gt; printnum(putch(), 7, 3, 16, -1, ' '); --&gt; putch('3', 7)</li>
+</ul></li>
+<li>void vprintfmt(putch(), 8, &quot;x %d, y %x, z %d&quot;, {z}) --&gt; <code>while ((ch = *(unsigned char *) fmt++) != '%')</code> --&gt; ch == ','</li>
+<li>static void putch(',', 8)</li>
+<li>...</li>
+<li>void vprintfmt(putch(), 9, &quot;x %d, y %x, z %d&quot;, {z}) --&gt; <code>while ((ch = *(unsigned char *) fmt++) != '%')</code> --&gt; ch == ' '</li>
+<li>static void putch(' ', 9)</li>
+<li>...</li>
+<li>void vprintfmt(putch(), 10, &quot;x %d, y %x, z %d&quot;, {z}) --&gt; <code>while ((ch = *(unsigned char *) fmt++) != '%')</code> --&gt; ch == 'z'</li>
+<li>static void putch('z', 10)</li>
+<li>...</li>
+<li>void vprintfmt(putch(), 11, &quot;x %d, y %x, z %d&quot;, {z}) --&gt; <code>while ((ch = *(unsigned char *) fmt++) != '%')</code> --&gt; ch == ' '</li>
+<li>static void putch(' ', 11)</li>
+<li>...</li>
+<li>void vprintfmt(putch(), 12, &quot;x %d, y %x, z %d&quot;, {z}) --&gt; <code>while ((ch = *(unsigned char *) fmt++) != '%')</code> --&gt; ch == '%'</li>
+<li>case 'd'
+<ul>
+<li>static long long getint({z}, 0) --&gt; <code>return va_arg(*ap, int)</code> =&gt; return z =&gt; return 4</li>
+<li>goto number --&gt; printnum(putch(), 12, 4, 10, -1, ' ') --&gt; putch('4', 12)</li>
+</ul></li>
+<li>void vprintfmt(putch(), 13, &quot;x %d, y %x, z %d&quot;, {}) --&gt; <code>while ((ch = *(unsigned char *) fmt++) != '%')</code> --&gt; ch == '\n'</li>
+<li>static void putch('\n', 13)
+<ul>
+<li>void cputchar('\n')</li>
+<li>void cons_putc('\n')
+<ul>
+<li>static void cga_putc('\n') -- &gt; <code>case '\\n': crt_pos += CRT_COLS;</code></li>
+</ul></li>
+</ul></li>
+<li><strong>Finally, <code>&quot;x %d, y %x, z %d\\n&quot;, x, y, z</code> is printed as <code>x 1, y 3, z 4</code>, <code>cprintf</code> return 14 because there are 14 byte printed to the console(including '\n').</strong></li>
 </ul></li>
 </ul>
 <hr />

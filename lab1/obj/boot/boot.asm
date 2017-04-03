@@ -64,8 +64,7 @@ seta20.2:
   # effective memory map does not change during the switch.
   lgdt    gdtdesc
     7c1e:	0f 01 16             	lgdtl  (%esi)
-    7c21:	64                   	fs
-    7c22:	7c 0f                	jl     7c33 <protcseg+0x1>
+    7c21:	64 7c 0f             	fs jl  7c33 <protcseg+0x1>
   movl    %cr0, %eax
     7c24:	20 c0                	and    %al,%al
   orl     $CR0_PE_ON, %eax
