@@ -61,7 +61,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <span class="ot">#define COM_LSR     5   </span><span class="co">// In:  Line Status Register</span>
 <span class="ot">#define   COM_LSR_DATA  0x01    </span><span class="co">//   Data available</span>
 <span class="ot">#define COM_RX      0   </span><span class="co">// In:  Receive buffer (DLAB=0)</span></code></pre>
-<p>We can see what the ports do <a href="http://bochs.sourceforge.net/techspec/PORTS.LST">here</a>:</p>
+<p>We can check what the ports do <a href="http://bochs.sourceforge.net/techspec/PORTS.LST">here</a>:</p>
 <pre class="plain"><code>03F8    w   serial port, transmitter holding register, which contains the
         character to be sent. Bit 0 is sent first.
          bit 7-0   data bits when DLAB=0 (Divisor Latch Access Bit)
@@ -73,8 +73,8 @@ code > span.er { color: #ff0000; font-weight: bold; }
         ...
         bit 0 = 1  data ready. a complete incoming character has been
                 received and sent to the receiver buffer register.</code></pre>
-<p>Now we can see what <code>serial_proc_data(void)</code> does. <strong>It check if the data is ready, if ready, return the character, if not, return -1 instead.</strong></p>
-<p>Also, we can see what <code>cons_intr</code> does, when the parameter is <code>int serial_proc_data(void)</code>, basically, it write data which is read from port <code>03F8</code> to the struct <code>cons</code>.</p>
+<p>This is what <code>serial_proc_data(void)</code> does: <strong>It check if the data is ready, if ready, return the character, if not, return -1 instead.</strong></p>
+<p>Also, we can figure out what <code>cons_intr</code> does, when the parameter is <code>int serial_proc_data(void)</code>, basically, it write data which is read from port <code>03F8</code> to the struct <code>cons</code>.</p>
 <p><strong>Now let's turn to <code>void kbd_intr(void)</code> to see what happens.</strong> <code>kbd_intr</code> passes <code>int kbd_proc_data(void)</code> as the parameter to the <code>cons_intr</code>, as the name <code>kbd_proc_data</code> indicates, this function is used to process the character read from keyboard, and return the character. <code>kbd_proc_data</code> is very charming, you can see how <code>CapsLock</code> and <code>Ctrl + Alt + Del</code> work here, and I am sure <a href="https://www.win.tue.nl/~aeb/linux/kbd/scancodes-1.html">this material</a> will help a lot.</p>
 <p><strong>Now we can look back to see what <code>cons_intr</code> does.</strong> Basically, it reads character from serial(using <code>serial_proc_data</code>) and keyboard(using <code>kbd_proc_data</code>), and write characters to the buffer, maintaining the circular input buffer of console at the same time.</p>
 <pre class="sourceCode C"><code class="sourceCode c"><span class="co">// called by device interrupt routines to feed input characters</span>
@@ -327,7 +327,7 @@ cprintf(<span class="st">&quot;x %d, y %x, z %d</span><span class="ch">\n</span>
     cprintf(<span class="st">&quot;H%x Wo%s&quot;</span>, <span class="dv">57616</span>, &amp;i);</code></pre>
 <p><strong>What is the output? Explain how this output is arrived at in the step-by-step manner of the previous exercise. Here's an ASCII table that maps bytes to characters.</strong></p>
 <p>The output depends on that fact that the x86 is little-endian. If the x86 were instead big-endian what would you set i to in order to yield the same output? Would you need to change 57616 to a different value?</p>
-<p>Here's a description of <a href="http://www.webopedia.com/TERM/B/big_endian.html">little- and big-endian</a> and <a href="http://www.networksorcery.com/enp/ien/ien137.txt">a more whimsical description</a>.**</p>
+<p>Here's a description of <a href="http://www.webopedia.com/TERM/B/big_endian.html">little- and big-endian</a> and <a href="http://www.networksorcery.com/enp/ien/ien137.txt">a more whimsical description</a>.</p>
 <hr />
 <h3 id="in-the-following-code-what-is-going-to-be-printed-after-y-note-the-answer-is-not-a-specific-value.-why-does-this-happen">5. In the following code, what is going to be printed after 'y='? (note: the answer is not a specific value.) Why does this happen?</h3>
 <pre class="sourceCode C"><code class="sourceCode c">    cprintf(<span class="st">&quot;x=%d y=%d&quot;</span>, <span class="dv">3</span>);</code></pre>

@@ -46,7 +46,7 @@ We can see that actually the implementation code is in `int serial_proc_data(voi
 #define COM_RX		0	// In:	Receive buffer (DLAB=0)
 ```
 
-We can see what the ports do [here](http://bochs.sourceforge.net/techspec/PORTS.LST):
+We can check what the ports do [here](http://bochs.sourceforge.net/techspec/PORTS.LST):
 
 ```plain
 03F8	w	serial port, transmitter holding register, which contains the
@@ -62,10 +62,10 @@ We can see what the ports do [here](http://bochs.sourceforge.net/techspec/PORTS.
 			    received and sent to the receiver buffer register.
 ```
 
-Now we can see what `serial_proc_data(void)` does.
+This is what `serial_proc_data(void)` does:
 **It check if the data is ready, if ready, return the character, if not, return -1 instead.**
 
-Also, we can see what `cons_intr` does, when the parameter is `int serial_proc_data(void)`, basically, it write data which is read from port `03F8` to the struct `cons`.
+Also, we can figure out what `cons_intr` does, when the parameter is `int serial_proc_data(void)`, basically, it write data which is read from port `03F8` to the struct `cons`.
 
 **Now let's turn to `void kbd_intr(void)` to see what happens.**
 `kbd_intr` passes `int kbd_proc_data(void)` as the parameter to the `cons_intr`, as the name `kbd_proc_data` indicates, this function is used to process the character read from keyboard, and return the character. `kbd_proc_data` is very charming, you can see how `CapsLock` and `Ctrl + Alt + Del` work here, and I am sure [this material](https://www.win.tue.nl/~aeb/linux/kbd/scancodes-1.html) will help a lot.
