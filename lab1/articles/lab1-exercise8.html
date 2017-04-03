@@ -131,10 +131,22 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <span class="dt">int</span> cprintf(<span class="dt">const</span> <span class="dt">char</span> *fmt, ...);
 <span class="dt">int</span> vcprintf(<span class="dt">const</span> <span class="dt">char</span> *fmt, va_list);</code></pre>
 <p>And as the comments above show, these functions are implemented in some files at <code>lib</code> folder, so I am going to check those files.</p>
-<p>However, there are some strange things: * <code>lib/stdio.c</code> doesn't exist. * <code>printf.c</code> is not in <code>lib</code>, it is in <code>kern</code> folder instead. * <code>fprintf.c</code> doesn't exist.</p>
-<p>So I decide to check <code>lib/printfmt</code> first.</p>
+<p>However, there are some strange things:</p>
 <ul>
-<li><h3>printfmt.c</h3></li>
+<li><code>lib/stdio.c</code> doesn't exist.</li>
+<li><code>printf.c</code> is not in <code>lib</code>, it is in <code>kern</code> folder instead.</li>
+<li><code>fprintf.c</code> doesn't exist.</li>
+</ul>
+<p>According to the comments from the top of <code>print.c</code>:</p>
+<blockquote>
+<p>// Simple implementation of cprintf console output for the kernel,</p>
+</blockquote>
+<blockquote>
+<p>// based on printfmt() and the kernel console's cputchar().</p>
+</blockquote>
+<p><code>print.c</code> is based on <code>printfmt.c</code>, I would like to check these two files upside down, so I decide to check <code>lib/print.c</code> first.</p>
+<ul>
+<li><h3>print.c &amp;&amp; printfmt.c</h3></li>
 </ul>
 <hr />
 <h3 id="explain-the-following-from-console.c">2. Explain the following from console.c:</h3>

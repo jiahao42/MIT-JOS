@@ -4,9 +4,7 @@
 
 ---
 
-### Be able to answer the following questions:
-
-### 1. Explain the interface between printf.c and console.c. Specifically, what function does console.c export? How is this function used by printf.c?
+### I will explain `console.c`, `stdio.h`, and `print.c && printfmt.c` separately.
 
 * ### console.c
 
@@ -128,13 +126,9 @@ And finally I decide to simply list the function of the functions left in `conso
 
 * **`int iscons(int fdnum)` :** I'm not sure what this is used for, I think it receives a file descriptor and return if it is a console, buf I did not see any code but `return 1` in this function, can't figure out why for now.
 
-
-
-
-
 * ### stdio.h
 
-Second, `inc/stdio.h` declares a series of `printf`, such as:
+`inc/stdio.h` declares a series of `printf`, such as:
 
 ```C
 // lib/printfmt.c
@@ -151,14 +145,87 @@ int	vcprintf(const char *fmt, va_list);
 And as the comments above show, these functions are implemented in some files at `lib` folder, so I am going to check those files.
 
 However, there are some strange things:
+
 * `lib/stdio.c` doesn't exist.
 * `printf.c` is not in `lib`, it is in `kern` folder instead.
 * `fprintf.c` doesn't exist.
 
-So I decide to check `lib/printfmt` first.
+According to the comments from the top of `print.c`:
 
-* ### printfmt.c
+> // Simple implementation of cprintf console output for the kernel,
 
+> // based on printfmt() and the kernel console's cputchar().
+
+`print.c` is based on `printfmt.c`, I would like to check these two files upside down, so I decide to check `lib/print.c` first.
+
+* ### print.c && printfmt.c
+
+First, let's see how `int cprintf(const char *fmt, ...)` works, you need to know the [usage of variable argument](http://www.cprogramming.com/tutorial/c/lesson17.html):
+
+```C
+static void putch(int ch, int *cnt)
+{
+	cputchar(ch); // output character to console
+	*cnt++;
+}
+
+int vcprintf(const char *fmt, va_list ap)
+{
+	int cnt = 0;
+
+	vprintfmt((void*)putch, &cnt, fmt, ap);
+	return cnt;
+}
+
+int cprintf(const char *fmt, ...) // fmt == format, such as %p, %d ...
+{
+	va_list ap;
+	int cnt; // how many characters are output to console
+
+	va_start(ap, fmt); // initializes the va_list
+	cnt = vcprintf(fmt, ap);
+	va_end(ap);
+
+	return cnt;
+}
+```
+
+Apprently, the code in `print.c` basically processes the variable arguments, and passes a output function, leads to `vprintfmt` in `printfmt.c`, so it is time to check `vprintfmt` in `printfmt.c`.
+
+**The main skeleton of `vprintfmt` :**
+
+```C
+while (1) {
+	while ((ch = *(unsigned char *) fmt++) != '%') { // if it is not a format sign, just output it to the console
+		if (ch == '\0')
+			return;
+		putch(ch, putdat); // output it
+	}
+	reswitch:
+		switch (ch = *(unsigned char *) fmt++) { // if it is a format sign, check the character after '%', and processes it
+		case '-':
+			...
+		case '%':
+			...
+		case 'd':
+			...
+		case 's':
+			...
+		case 'o':
+			...
+		...
+	}
+}
+```
+
+
+
+---
+
+
+### Be able to answer the following questions:
+
+### 1. Explain the interface between printf.c and console.c. Specifically, what function does console.c export? How is this function used by printf.c?
 
 ---
 
