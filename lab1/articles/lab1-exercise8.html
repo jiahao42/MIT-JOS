@@ -32,8 +32,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <p>Exercise 8. We have omitted a small fragment of code - the code necessary to print octal numbers using patterns of the form &quot;%o&quot;. Find and fill in this code fragment.</p>
 </blockquote>
 <hr />
-<h3 id="be-able-to-answer-the-following-questions">Be able to answer the following questions:</h3>
-<h3 id="explain-the-interface-between-printf.c-and-console.c.-specifically-what-function-does-console.c-export-how-is-this-function-used-by-printf.c">1. Explain the interface between printf.c and console.c. Specifically, what function does console.c export? How is this function used by printf.c?</h3>
+<h3 id="i-will-explain-console.c-stdio.h-and-print.c-printfmt.c-separately.">I will explain <code>console.c</code>, <code>stdio.h</code>, and <code>print.c &amp;&amp; printfmt.c</code> separately.</h3>
 <ul>
 <li><h3>console.c</h3></li>
 </ul>
@@ -120,7 +119,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <li><p><strong><code>int iscons(int fdnum)</code> :</strong> I'm not sure what this is used for, I think it receives a file descriptor and return if it is a console, buf I did not see any code but <code>return 1</code> in this function, can't figure out why for now.</p></li>
 <li><h3>stdio.h</h3></li>
 </ul>
-<p>Second, <code>inc/stdio.h</code> declares a series of <code>printf</code>, such as:</p>
+<p><code>inc/stdio.h</code> declares a series of <code>printf</code>, such as:</p>
 <pre class="sourceCode C"><code class="sourceCode c"><span class="co">// lib/printfmt.c</span>
 <span class="dt">void</span>    printfmt(<span class="dt">void</span> (*putch)(<span class="dt">int</span>, <span class="dt">void</span>*), <span class="dt">void</span> *putdat, <span class="dt">const</span> <span class="dt">char</span> *fmt, ...);
 <span class="dt">void</span>    vprintfmt(<span class="dt">void</span> (*putch)(<span class="dt">int</span>, <span class="dt">void</span>*), <span class="dt">void</span> *putdat, <span class="dt">const</span> <span class="dt">char</span> *fmt, va_list);
@@ -148,6 +147,64 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <ul>
 <li><h3>print.c &amp;&amp; printfmt.c</h3></li>
 </ul>
+<p>First, let's see how <code>int cprintf(const char *fmt, ...)</code> works, you need to know the <a href="http://www.cprogramming.com/tutorial/c/lesson17.html">usage of variable argument</a>:</p>
+<pre class="sourceCode C"><code class="sourceCode c"><span class="dt">static</span> <span class="dt">void</span> putch(<span class="dt">int</span> ch, <span class="dt">int</span> *cnt)
+{
+    cputchar(ch); <span class="co">// output character to console</span>
+    *cnt++;
+}
+
+<span class="dt">int</span> vcprintf(<span class="dt">const</span> <span class="dt">char</span> *fmt, va_list ap)
+{
+    <span class="dt">int</span> cnt = <span class="dv">0</span>;
+
+    vprintfmt((<span class="dt">void</span>*)putch, &amp;cnt, fmt, ap);
+    <span class="kw">return</span> cnt;
+}
+
+<span class="dt">int</span> cprintf(<span class="dt">const</span> <span class="dt">char</span> *fmt, ...) <span class="co">// fmt == format, such as %p, %d ...</span>
+{
+    va_list ap;
+    <span class="dt">int</span> cnt; <span class="co">// how many characters are output to console</span>
+
+    va_start(ap, fmt); <span class="co">// initializes the va_list</span>
+    cnt = vcprintf(fmt, ap);
+    va_end(ap);
+
+    <span class="kw">return</span> cnt;
+}</code></pre>
+<p>Apprently, the code in <code>print.c</code> basically processes the variable arguments, and passes a output function, leads to <code>vprintfmt</code> in <code>printfmt.c</code>, so it is time to check <code>vprintfmt</code> in <code>printfmt.c</code>.</p>
+<p><strong>The main skeleton of <code>vprintfmt</code> :</strong></p>
+<h4 id="attention-the-omitted-fragment-of-code-is-here-we-are-going-to-solve-exercise8-right-now">Attention: the omitted fragment of code is here, we are going to solve exercise8 right now!!!</h4>
+<pre class="sourceCode C"><code class="sourceCode c"><span class="kw">while</span> (<span class="dv">1</span>) {
+    <span class="kw">while</span> ((ch = *(<span class="dt">unsigned</span> <span class="dt">char</span> *) fmt++) != &#39;%&#39;) { <span class="co">// if it is not a format sign, just output it to the console</span>
+        <span class="kw">if</span> (ch == &#39;\<span class="dv">0</span>&#39;)
+            <span class="kw">return</span>;
+        putch(ch, putdat); <span class="co">// output it</span>
+    }
+    reswitch:
+        <span class="kw">switch</span> (ch = *(<span class="dt">unsigned</span> <span class="dt">char</span> *) fmt++) { <span class="co">// if it is a format sign, check the character after &#39;%&#39;, and processes it</span>
+        <span class="kw">case</span> &#39;-&#39;:
+            ...
+        <span class="kw">case</span> &#39;%&#39;:
+            ...
+        <span class="kw">case</span> &#39;d&#39;:
+            ...
+        <span class="kw">case</span> &#39;s&#39;:
+            ...
+        <span class="kw">case</span> &#39;o&#39;: <span class="co">// here is where we need to fix in exercise8</span>
+            num = getuint(&amp;ap, lflag);
+            base = <span class="dv">8</span>;
+            <span class="kw">goto</span> number;
+            <span class="kw">break</span>;
+        ...
+    }
+}</code></pre>
+<hr />
+<h3 id="be-able-to-answer-the-following-questions">Be able to answer the following questions:</h3>
+<h3 id="explain-the-interface-between-printf.c-and-console.c.-specifically-what-function-does-console.c-export-how-is-this-function-used-by-printf.c">1. Explain the interface between printf.c and console.c. Specifically, what function does console.c export? How is this function used by printf.c?</h3>
+<p><code>console.c</code> exports three <strong>'High'-level console I/O</strong> function: * <code>void cputchar(int c)</code> * <code>int getchar(void)</code> * <code>int iscons(int fdnum)</code></p>
+<p><code>static void putch(int ch, int *cnt)</code> in <code>print.c</code> uses <code>cputchar</code> to output characters to the console.</p>
 <hr />
 <h3 id="explain-the-following-from-console.c">2. Explain the following from console.c:</h3>
 <pre class="sourceCode C"><code class="sourceCode c"><span class="dv">1</span>      <span class="kw">if</span> (crt_pos &gt;= CRT_SIZE) {
@@ -157,14 +214,49 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <span class="dv">5</span>                      crt_buf[i] = <span class="bn">0x0700</span> | &#39; &#39;;
 <span class="dv">6</span>              crt_pos -= CRT_COLS;
 <span class="dv">7</span>      }</code></pre>
+<p>First, let's find the definition of <code>CRT</code> stuff in <code>console.h</code>:</p>
+<pre class="sourceCode C"><code class="sourceCode c"><span class="ot">#define CRT_ROWS    25</span>
+<span class="ot">#define CRT_COLS    80</span>
+<span class="ot">#define CRT_SIZE    (CRT_ROWS * CRT_COLS)</span></code></pre>
+<p>We should be aware that the <code>CRT</code> refers to the console, so, the macro above means that the console has 25 rows and 80 columns, and can display 2000 characters in total.</p>
+<p>So now we can see what <code>if (crt_pos &gt;= CRT_SIZE)</code> means, it means if the current position of console is greater than the size of console. In old console, it doesn't scrollbar like nowadays, so the content of console must move upward so that a new line can be created.</p>
+<pre class="sourceCode C"><code class="sourceCode c"><span class="dv">1</span>      <span class="kw">if</span> (crt_pos &gt;= CRT_SIZE) { <span class="co">// if the position meet the end of console</span>
+<span class="dv">2</span>              <span class="dt">int</span> i;
+<span class="dv">3</span>              memcpy(crt_buf, crt_buf + CRT_COLS, (CRT_SIZE - CRT_COLS) * <span class="kw">sizeof</span>(<span class="dt">uint16_t</span>)); <span class="co">// move the whole content one line above, so that a new line is created on the console</span>
+<span class="dv">4</span>              <span class="kw">for</span> (i = CRT_SIZE - CRT_COLS; i &lt; CRT_SIZE; i++) <span class="co">// fill the new line with whitespace</span>
+<span class="dv">5</span>                      crt_buf[i] = <span class="bn">0x0700</span> | &#39; &#39;;
+<span class="dv">6</span>              crt_pos -= CRT_COLS; <span class="co">// relocate the position</span>
+<span class="dv">7</span>      }</code></pre>
 <hr />
 <h3 id="for-the-following-questions-you-might-wish-to-consult-the-notes-for-lecture-2.-these-notes-cover-gccs-calling-convention-on-the-x86.">3. For the following questions you might wish to consult the notes for Lecture 2. These notes cover GCC's calling convention on the x86.</h3>
 <p>Trace the execution of the following code step-by-step:</p>
 <pre class="sourceCode C"><code class="sourceCode c"><span class="dt">int</span> x = <span class="dv">1</span>, y = <span class="dv">3</span>, z = <span class="dv">4</span>;
 cprintf(<span class="st">&quot;x %d, y %x, z %d</span><span class="ch">\n</span><span class="st">&quot;</span>, x, y, z);</code></pre>
 <ul>
-<li>In the call to cprintf(), to what does fmt point? To what does ap point?</li>
-<li>List (in order of execution) each call to cons_putc, va_arg, and vcprintf. For cons_putc, list its argument as well. For va_arg, list what ap points to before and after the call. For vcprintf list the values of its two arguments.</li>
+<li><p>In the call to <code>cprintf()</code>, to what does <code>fmt</code> point? To what does <code>ap</code> point?</p>
+<ul>
+<li><code>fmt</code> points to <code>&quot;x %d, y %x, z %d\n&quot;</code>.</li>
+<li><code>ap</code> points to <code>x, y, z</code>.</li>
+</ul></li>
+<li><p>List (in order of execution) each call to cons_putc, va_arg, and vcprintf. For cons_putc, list its argument as well. For va_arg, list what ap points to before and after the call. For vcprintf list the values of its two arguments.</p>
+<ul>
+<li>int cprintf(&quot;x %d, y %x, z %d&quot;, x, y, z)</li>
+<li>int vcprintf(&quot;x %d, y %x, z %d&quot;, {x, y, z})</li>
+<li>void vprintfmt(putch(), 0, &quot;x %d, y %x, z %d&quot;, {x, y, z}) --&gt; <code>while ((ch = *(unsigned char *) fmt++) != '%')</code> --&gt; ch == 'x'</li>
+<li>static void putch('x', 0)</li>
+<li>void cputchar('x')</li>
+<li>static void cons_putc('x')
+<ul>
+<li>serial_putc('x');</li>
+<li>lpt_putc('x');</li>
+<li>cga_putc('x');</li>
+</ul></li>
+<li>void vprintfmt(putch(), 0, &quot;x %d, y %x, z %d&quot;, {x, y, z}) --&gt; <code>while ((ch = *(unsigned char *) fmt++) != '%')</code> --&gt; ch == ' '</li>
+<li>static void putch(' ', 0)</li>
+<li>...</li>
+<li>void vprintfmt(putch(), 0, &quot;x %d, y %x, z %d&quot;, {x, y, z}) --&gt; <code>while ((ch = *(unsigned char *) fmt++) != '%')</code> --&gt; ch == '%'</li>
+<li>case 'd'</li>
+</ul></li>
 </ul>
 <hr />
 <h3 id="run-the-following-code.">4. Run the following code.</h3>

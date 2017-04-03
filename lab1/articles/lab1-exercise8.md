@@ -285,9 +285,67 @@ Trace the execution of the following code step-by-step:
 int x = 1, y = 3, z = 4;
 cprintf("x %d, y %x, z %d\n", x, y, z);
 ```
-* In the call to cprintf(), to what does fmt point? To what does ap point?
+* In the call to `cprintf()`, to what does `fmt` point? To what does `ap` point?
+	* [How are variable arguments implemented in gcc?](http://stackoverflow.com/questions/12371450/how-are-variable-arguments-implemented-in-gcc)
+	* `fmt` points to address of `"x %d, y %x, z %d\n"`.
+	* `ap` points to address of `x`.
+
 * List (in order of execution) each call to cons_putc, va_arg, and vcprintf. For cons_putc, list its argument as well. For va_arg, list what ap points to before and after the call. For vcprintf list the values of its two arguments.
 
+	* int cprintf("x %d, y %x, z %d\n", x, y, z)
+	* int vcprintf("x %d, y %x, z %d\n", {x, y, z})
+	* void vprintfmt(putch(), 0, "x %d, y %x, z %d\n", {x, y, z}) --> `while ((ch = *(unsigned char *) fmt++) != '%')` --> ch == 'x'
+	* static void putch('x', 0)
+		* void cputchar('x')
+		* static void cons_putc('x')
+			* serial_putc('x')
+			* lpt_putc('x')
+			* cga_putc('x')
+	* void vprintfmt(putch(), 1, "x %d, y %x, z %d\n", {y, z}) --> `while ((ch = *(unsigned char *) fmt++) != '%')` --> ch == ' '
+	* static void putch(' ', 1)
+	* ...
+	* void vprintfmt(putch(), 2, "x %d, y %x, z %d\n", {y, z}) --> `while ((ch = *(unsigned char *) fmt++) != '%')` --> ch == '%'
+	* case 'd' 
+		* static long long getint({x, y, z}, 0) --> `return va_arg(*ap, int)` => return x => return 1
+		* goto number --> printnum(putch(), 2, 1, 10, -1, ' ') --> putch('1', 2)
+	* void vprintfmt(putch(), 3, "x %d, y %x, z %d\n", {y, z}) --> `while ((ch = *(unsigned char *) fmt++) != '%')` --> ch == ','
+	* static void putch(',', 3)
+	* ...
+	* void vprintfmt(putch(), 4, "x %d, y %x, z %d\n", {y, z}) --> `while ((ch = *(unsigned char *) fmt++) != '%')` --> ch == ' '
+	* static void putch(' ', 4)
+	* ...
+	* void vprintfmt(putch(), 5, "x %d, y %x, z %d\n", {y, z}) --> `while ((ch = *(unsigned char *) fmt++) != '%')` --> ch == 'y'
+	* static void putch('y', 5)
+	* ...
+	* void vprintfmt(putch(), 6, "x %d, y %x, z %d\n", {y, z}) --> `while ((ch = *(unsigned char *) fmt++) != '%')` --> ch == ' '
+	* static void putch(' ', 6)
+	* ...
+	* void vprintfmt(putch(), 7, "x %d, y %x, z %d\n", {y, z}) --> `while ((ch = *(unsigned char *) fmt++) != '%')` --> ch == '%'
+	* case 'x' 
+		* static unsigned long long getuint({y, z}, 0) --> `return va_arg(*ap, int)` => return y => return 3
+		* goto number --> printnum(putch(), 7, 3, 16, -1, ' '); --> putch('3', 7)
+	* void vprintfmt(putch(), 8, "x %d, y %x, z %d\n", {z}) --> `while ((ch = *(unsigned char *) fmt++) != '%')` --> ch == ','
+	* static void putch(',', 8)
+	* ...
+	* void vprintfmt(putch(), 9, "x %d, y %x, z %d\n", {z}) --> `while ((ch = *(unsigned char *) fmt++) != '%')` --> ch == ' '
+	* static void putch(' ', 9)
+	* ...
+	* void vprintfmt(putch(), 10, "x %d, y %x, z %d\n", {z}) --> `while ((ch = *(unsigned char *) fmt++) != '%')` --> ch == 'z'
+	* static void putch('z', 10)
+	* ...
+	* void vprintfmt(putch(), 11, "x %d, y %x, z %d\n", {z}) --> `while ((ch = *(unsigned char *) fmt++) != '%')` --> ch == ' '
+	* static void putch(' ', 11)
+	* ...
+	* void vprintfmt(putch(), 12, "x %d, y %x, z %d\n", {z}) --> `while ((ch = *(unsigned char *) fmt++) != '%')` --> ch == '%'
+	* case 'd' 
+		* static long long getint({z}, 0) --> `return va_arg(*ap, int)` => return z => return 4
+		* goto number --> printnum(putch(), 12, 4, 10, -1, ' ') --> putch('4', 12)
+	* void vprintfmt(putch(), 13, "x %d, y %x, z %d\n", {}) --> `while ((ch = *(unsigned char *) fmt++) != '%')` --> ch == '\n'
+	* static void putch('\n', 13)
+		* void cputchar('\n')
+		* void cons_putc('\n')
+		* cga_putc('\n') -- > `case '\n': crt_pos += CRT_COLS;`
+		
 ---
 
 ### 4. Run the following code.
