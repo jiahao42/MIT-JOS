@@ -363,10 +363,28 @@ _IO_vfprintf_internal (s=0xb7fbdac0 &lt;_IO_2_1_stdout_&gt;,
 (gdb) c
 Continuing.
 x=3 y=134513755</code></pre>
-<p>The value of y, 134513755, is <code>0x‭0804845B‬</code> in hex, which is the value of <code>ap+4</code>, I am not sure what the value is used for, but I know it's a undefined behavior which we need to avoid.</p>
+<p>The value of y, 134513755, is <code>0x‭0804845B‬</code> in hex, which is the value of <code>ap+4</code>, I am not sure what the value is used for(I guess it is the return address of function <code>8048350 &lt;__x86.get_pc_thunk.bx&gt;</code>), but I know it's a undefined behavior which we need to avoid.</p>
 <hr />
 <h3 id="lets-say-that-gcc-changed-its-calling-convention-so-that-it-pushed-arguments-on-the-stack-in-declaration-order-so-that-the-last-argument-is-pushed-last.-how-would-you-have-to-change-cprintf-or-its-interface-so-that-it-would-still-be-possible-to-pass-it-a-variable-number-of-arguments">6. Let's say that GCC changed its calling convention so that it pushed arguments on the stack in declaration order, so that the last argument is pushed last. How would you have to change cprintf or its interface so that it would still be possible to pass it a variable number of arguments?</h3>
+<p>Let's say we have such test code <code>cprintf(&quot;%d%x%d&quot;, a, b, c);</code>.</p>
+<p>These two stack layouts stand for the two different calling convention, <code>layout I</code> stands for the GCC original layout, <code>layout II</code> stands for the layout after we have changed the calling convention:</p>
+<pre class="plain"><code>       layout I                              layout II
++------------------+                    +------------------+            
+|   ret address    |                    |   ret address    |           
++------------------+  &lt;- fmt            +------------------+          
+|     &quot;%d%x%d&quot;     |                    |        c         |           
++------------------+  &lt;- ap             +------------------+           
+|        a         |                    |        b         |           
++------------------+                    +------------------+  &lt;- ap         
+|        b         |                    |        a         |           
++------------------+                    +------------------+  &lt;- fmt        
+|        c         |                    |     &quot;%d%x%d&quot;     |           
++------------------+                    +------------------+           
+|                  |                    |                  |           
++------------------+                    +------------------+           </code></pre>
+<p>We should be aware that the ap will move upside down, so to change <code>cprintf(&quot;%d%x%d&quot;, a, b, c);</code> to <code>cprintf(c, b, a, &quot;%d%x%d&quot;);</code> will do the job, they will print the same result. However, this way is absolutely hard to understand, I am sure there will be a more elegant way to change it. // TODO</p>
 <hr />
 <h3 id="challenge-enhance-the-console-to-allow-text-to-be-printed-in-different-colors.-the-traditional-way-to-do-this-is-to-make-it-interpret-ansi-escape-sequences-embedded-in-the-text-strings-printed-to-the-console-but-you-may-use-any-mechanism-you-like.-there-is-plenty-of-information-on-the-6.828-reference-page-and-elsewhere-on-the-web-on-programming-the-vga-display-hardware.-if-youre-feeling-really-adventurous-you-could-try-switching-the-vga-hardware-into-a-graphics-mode-and-making-the-console-draw-text-onto-the-graphical-frame-buffer.">7. Challenge Enhance the console to allow text to be printed in different colors. The traditional way to do this is to make it interpret <a href="http://www.dee.ufcg.edu.br/~rrbrandt/tools/ansi.html">ANSI escape sequences</a> embedded in the text strings printed to the console, but you may use any mechanism you like. There is plenty of information on <a href="https://pdos.csail.mit.edu/6.828/2011/reference.html">the 6.828 reference page</a> and elsewhere on the web on programming the VGA display hardware. If you're feeling really adventurous, you could try switching the VGA hardware into a graphics mode and making the console draw text onto the graphical frame buffer.</h3>
+<p>//TODO</p>
 </body>
 </html>
