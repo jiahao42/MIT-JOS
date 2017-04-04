@@ -101,27 +101,27 @@ We should now that the sequence of pushing data. First, if the function has para
 
 Until now, the stack should be like this:
 ```plain
-          +------------------+  <-
-          |                  |
-          +------------------+  <- esp = ebp-0x14 = 0x7be4 : parameter11 of readseg
-          |    0x00010000    |
-          +------------------+  <- ebp-0x10 = 0x7be8 : parameter2 of readseg
-          |    0x00001000    |
-          +------------------+  <- ebp-0xc = 0x7bec : parameter3 of readseg
-          |    0x00000000    |
-          +------------------+  <- ebp-0x8 = 0x7bf0 : value of ebx
-          |    0x00000000    |
-          +------------------+  <- ebp-0x4 = 0x7bf4 : value of esi
-          |    0x00000000    |
-          +------------------+  <- ebp = 0x7bf8 : ebp of former function
-          |    0x00000000    |
-          +------------------+  <- 0x7bfc : ret address
-          |    0x00007c4a    |
-          +------------------+  <- 0x7c00 : original esp
-          |     boot.S       |
-          +------------------+  <-
-          |                  |
-          +------------------+  <- 0x00000000
++------------------+  <-
+|                  |
++------------------+  <- esp = ebp-0x14 = 0x7be4 : parameter11 of readseg
+|    0x00010000    |
++------------------+  <- ebp-0x10 = 0x7be8 : parameter2 of readseg
+|    0x00001000    |
++------------------+  <- ebp-0xc = 0x7bec : parameter3 of readseg
+|    0x00000000    |
++------------------+  <- ebp-0x8 = 0x7bf0 : value of ebx
+|    0x00000000    |
++------------------+  <- ebp-0x4 = 0x7bf4 : value of esi
+|    0x00000000    |
++------------------+  <- ebp = 0x7bf8 : ebp of former function
+|    0x00000000    |
++------------------+  <- 0x7bfc : ret address
+|    0x00007c4a    |
++------------------+  <- 0x7c00 : original esp
+|     boot.S       |
++------------------+  <-
+|                  |
++------------------+  <- 0x00000000
 
 ```
 We can see the return address `0x00007c4a` and the original `esp` `0x7c00` in `boot.asm`:

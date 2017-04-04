@@ -147,7 +147,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <ul>
 <li><h3>print.c &amp;&amp; printfmt.c</h3></li>
 </ul>
-<p>First, let's see how <code>int cprintf(const char *fmt, ...)</code> works, you need to know the <a href="http://www.cprogramming.com/tutorial/c/lesson17.html">usage of variable argument</a>:</p>
+<p>First, let's see how <code>int cprintf(const char *fmt, ...)</code> works, you need to know the <a href="http://www.cprogramming.com/tutorial/c/lesson17.html">usage of variable argument</a> and the <a href="http://stackoverflow.com/questions/12371450/how-are-variable-arguments-implemented-in-gcc">layout of va</a>:</p>
 <pre class="sourceCode C"><code class="sourceCode c"><span class="dt">static</span> <span class="dt">void</span> putch(<span class="dt">int</span> ch, <span class="dt">int</span> *cnt)
 {
     cputchar(ch); <span class="co">// output character to console</span>
@@ -345,7 +345,25 @@ cprintf(<span class="st">&quot;x %d, y %x, z %d</span><span class="ch">\n</span>
 <hr />
 <h3 id="in-the-following-code-what-is-going-to-be-printed-after-y-note-the-answer-is-not-a-specific-value.-why-does-this-happen">5. In the following code, what is going to be printed after 'y='? (note: the answer is not a specific value.) Why does this happen?</h3>
 <pre class="sourceCode C"><code class="sourceCode c">    cprintf(<span class="st">&quot;x=%d y=%d&quot;</span>, <span class="dv">3</span>);</code></pre>
-<p>It will output a &quot;random&quot; value, actually it is the value of</p>
+<p>It will output a &quot;random&quot; value, actually it is the value adjacent to <code>0x00000003</code> , we can make a little test.</p>
+<pre class="sourceCode C"><code class="sourceCode c"><span class="dt">int</span> main()
+{
+    printf(<span class="st">&quot;x=%d y=%d&quot;</span>, <span class="dv">3</span>);
+}</code></pre>
+<p>Test it in gdb, and we can see things below:</p>
+<pre class="gdb"><code>(gdb) s
+_IO_vfprintf_internal (s=0xb7fbdac0 &lt;_IO_2_1_stdout_&gt;, 
+    format=format@entry=0x80484e0 &quot;x=%d y=%d&quot;, ap=ap@entry=0xbffff124 &quot;\003&quot;)
+    at vfprintf.c:235
+235 vfprintf.c: No such file or directory.
+(gdb) x/4b ap
+0xbffff124: 0x03    0x00    0x00    0x00
+(gdb) x/4b ap+4
+0xbffff128: 0x5b    0x84    0x04    0x08
+(gdb) c
+Continuing.
+x=3 y=134513755</code></pre>
+<p>The value of y, 134513755, is <code>0x‭0804845B‬</code> in hex, which is the value of <code>ap+4</code>, I am not sure what the value is used for, but I know it's a undefined behavior which we need to avoid.</p>
 <hr />
 <h3 id="lets-say-that-gcc-changed-its-calling-convention-so-that-it-pushed-arguments-on-the-stack-in-declaration-order-so-that-the-last-argument-is-pushed-last.-how-would-you-have-to-change-cprintf-or-its-interface-so-that-it-would-still-be-possible-to-pass-it-a-variable-number-of-arguments">6. Let's say that GCC changed its calling convention so that it pushed arguments on the stack in declaration order, so that the last argument is pushed last. How would you have to change cprintf or its interface so that it would still be possible to pass it a variable number of arguments?</h3>
 <hr />

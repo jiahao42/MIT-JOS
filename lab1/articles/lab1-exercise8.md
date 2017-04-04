@@ -413,12 +413,57 @@ Continuing.
 x=3 y=134513755
 ```
 
-The value of y, 134513755, is `0x‭0804845B‬` in hex, which is the value of `ap+4`, I am not sure what the value is used for, but I know it's a undefined behavior which we need to avoid.
+The value of y, 134513755, is `0x‭0804845B‬` in hex, which is the value of `ap+4`, I am not sure what the value is used for(I guess it is the return address of function `8048350 <__x86.get_pc_thunk.bx>`), but I know it's a undefined behavior which we need to avoid.
 
 ---
 
 ### 6. Let's say that GCC changed its calling convention so that it pushed arguments on the stack in declaration order, so that the last argument is pushed last. How would you have to change cprintf or its interface so that it would still be possible to pass it a variable number of arguments?
 
+Let's say we have such test code `cprintf("%d%x%d", a, b, c);`.
+
+These two stack layouts stand for the two different calling convention, `layout I` stands for the GCC original layout, `layout II` stands for the layout after we have changed the calling convention:
+
+```plain
+	   layout I				                 layout II
++------------------+                    +------------------+            
+|   ret address    |                    |   ret address    |           
++------------------+  <- fmt            +------------------+          
+|     "%d%x%d"     |                    |        c         |           
++------------------+  <- ap             +------------------+           
+|        a  	   |                    |        b  	   |           
++------------------+                    +------------------+  <- ap         
+|        b         |                    |        a         |           
++------------------+                    +------------------+  <- fmt        
+|        c         |                    |     "%d%x%d"     |           
++------------------+                    +------------------+           
+|                  |                    |                  |           
++------------------+                    +------------------+           
+```
+
+We should be aware that the ap will move upside down, so to change `cprintf("%d%x%d", a, b, c);` to `cprintf(c, b, a, "%d%x%d");` will do the job, they will print the same result. However, this way is absolutely hard to understand, I am sure there will be a more elegant way to change it. // TODO
+
+
 ---
 
 ### 7. Challenge Enhance the console to allow text to be printed in different colors. The traditional way to do this is to make it interpret [ANSI escape sequences](http://www.dee.ufcg.edu.br/~rrbrandt/tools/ansi.html) embedded in the text strings printed to the console, but you may use any mechanism you like. There is plenty of information on [the 6.828 reference page](https://pdos.csail.mit.edu/6.828/2011/reference.html) and elsewhere on the web on programming the VGA display hardware. If you're feeling really adventurous, you could try switching the VGA hardware into a graphics mode and making the console draw text onto the graphical frame buffer.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
